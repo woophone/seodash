@@ -685,7 +685,7 @@ const iconTech = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
   <!-- Tech Stack Modal (admin only) -->
   {techStack && (
     <div class="admin-only hidden">
-      <DashboardModal id="tech-stack" title="Tech Stack" subtitle="Detected technologies and infrastructure">
+      <DashboardModal id="tech-stack" title="Tech Stack" subtitle="Detected technologies and infrastructure" adminOnly={true}>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
           <div class="bg-gray-50 rounded-lg p-3">
             <span class="text-xs text-gray-400">CMS</span>
