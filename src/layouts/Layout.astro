@@ -40,6 +40,32 @@ const { title } = Astro.props;
     </div>
 
     <script>
+      // Modal open/close
+      document.querySelectorAll('[data-open-modal]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if ((e.target as HTMLElement).closest('a')) return;
+          const id = btn.getAttribute('data-open-modal')!;
+          const target = document.getElementById('modal-' + id) || document.getElementById(id);
+          target?.classList.remove('hidden');
+        });
+      });
+      document.querySelectorAll('[data-close-modal]').forEach(el => {
+        el.addEventListener('click', () => {
+          (el as HTMLElement).closest('.fixed')?.classList.add('hidden');
+        });
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.fixed:not(.hidden)').forEach(m => m.classList.add('hidden'));
+        }
+      });
+
+      // Admin mode: ?user=admin
+      if (new URLSearchParams(window.location.search).get('user') === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+      }
+
+      // Collapsible sections
       document.querySelectorAll('[data-toggle]').forEach(btn => {
         btn.addEventListener('click', () => {
           const target = document.getElementById(btn.getAttribute('data-toggle')!);

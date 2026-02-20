@@ -1,0 +1,71 @@
+---
+export interface Props {
+  id: string;
+  title: string;
+  icon: string;
+  color?: 'green' | 'red' | 'amber' | 'blue' | 'gray' | 'slate' | 'purple';
+  badge?: string;
+  adminOnly?: boolean;
+}
+
+const { id, title, icon, color = 'gray', badge, adminOnly = false } = Astro.props;
+
+const borders: Record<string, string> = {
+  green: 'border-l-green-500',
+  red: 'border-l-red-500',
+  amber: 'border-l-amber-500',
+  blue: 'border-l-blue-500',
+  gray: 'border-l-gray-400',
+  slate: 'border-l-slate-500',
+  purple: 'border-l-purple-500',
+};
+
+const iconColors: Record<string, string> = {
+  green: 'text-green-600',
+  red: 'text-red-600',
+  amber: 'text-amber-600',
+  blue: 'text-blue-600',
+  gray: 'text-gray-500',
+  slate: 'text-slate-500',
+  purple: 'text-purple-600',
+};
+
+const badgeColors: Record<string, string> = {
+  green: 'bg-green-100 text-green-800',
+  red: 'bg-red-100 text-red-800',
+  amber: 'bg-amber-100 text-amber-800',
+  blue: 'bg-blue-100 text-blue-800',
+  gray: 'bg-gray-100 text-gray-700',
+  slate: 'bg-slate-200 text-slate-700',
+  purple: 'bg-purple-100 text-purple-800',
+};
+---
+
+<div
+  data-open-modal={id}
+  class:list={[
+    'bg-white rounded-lg shadow-sm border-l-4 cursor-pointer hover:shadow-md transition-shadow',
+    borders[color],
+    adminOnly && 'admin-only hidden'
+  ]}
+>
+  <div class="p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-2.5">
+        <span class:list={['flex-shrink-0', iconColors[color]]} set:html={icon} />
+        <h3 class="text-base font-semibold text-gray-900">{title}</h3>
+      </div>
+      {badge && (
+        <span class:list={['text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap', badgeColors[color]]}>
+          {badge}
+        </span>
+      )}
+    </div>
+    <div class="text-sm text-gray-600 leading-relaxed">
+      <slot />
+    </div>
+  </div>
+  <div class="px-5 py-2.5 border-t border-gray-100">
+    <span class="text-xs text-gray-400 flex items-center justify-end">View details &rarr;</span>
+  </div>
+</div>

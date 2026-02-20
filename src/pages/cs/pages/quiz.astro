@@ -1,5 +1,7 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
+import DashboardCard from '../../../components/DashboardCard.astro';
+import DashboardModal from '../../../components/DashboardModal.astro';
 import { quizReport } from '../../../data/cs-quiz-report.js';
 
 const { page, strength, gsc, serpFeatures, keywords, timeSeries, lighthouse, contentAudit, issues, adequacyAssessment } = quizReport;
@@ -19,6 +21,21 @@ const crashPercent = Math.round((1 - postCrashAvg / preCrashAvg) * 100);
 
 const clickKeywords = keywords.filter(k => k.clicks > 0);
 const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
+
+// Score color helper
+const scoreColor = (score: number) => score >= 90 ? 'text-green-600' : score >= 50 ? 'text-orange-500' : 'text-red-600';
+const dotColor = (score: number) => score >= 90 ? 'bg-green-500' : score >= 50 ? 'bg-orange-500' : 'bg-red-500';
+
+// Icons
+const iconStrength = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+const iconIssues = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>';
+const iconKeywords = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path></svg>';
+const iconSerp = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clip-rule="evenodd"></path></svg>';
+const iconTrend = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>';
+const iconContent = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"></path></svg>';
+const iconCwv = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>';
+const iconAssessment = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>';
+const iconTech = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
 ---
 
 <Layout title={`${page.title} — Page Report`}>
@@ -67,498 +84,77 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   </div>
 
   <!-- ============================================ -->
-  <!-- WHAT'S WORKING -->
+  <!-- CARD GRID -->
   <!-- ============================================ -->
-  <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
-    <h3 class="text-lg font-semibold text-green-900 mb-2">{strength.headline}</h3>
-    <p class="text-sm text-green-800 leading-relaxed">{strength.detail}</p>
-    <p class="text-sm text-green-700 mt-2"><strong>Competition:</strong> Keyword difficulty {strength.kd}</p>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <DashboardCard id="strengths" title="What's Working" icon={iconStrength} color="green">
+      <p>{strength.headline} — competition KD 12-17</p>
+    </DashboardCard>
+
+    <DashboardCard id="page-issues" title="Issues & Fixes" icon={iconIssues} color="red" badge={`${criticalIssues.length} critical`}>
+      <p>{criticalIssues.length} critical, {highIssues.length} high, {mediumIssues.length} medium — {issues.length} total</p>
+    </DashboardCard>
+
+    <DashboardCard id="keywords" title="Keywords" icon={iconKeywords} color="blue">
+      <p>{keywords.length} queries driving {gsc.clicks} clicks (28d)</p>
+    </DashboardCard>
+
+    <DashboardCard id="serp" title="SERP Landscape" icon={iconSerp} color="purple">
+      <p>Ads + PAA compress organic space</p>
+    </DashboardCard>
+
+    <DashboardCard id="trend" title="Impressions Trend" icon={iconTrend} color="amber">
+      <p>-{crashPercent}% after Feb 8 — investigating cause</p>
+    </DashboardCard>
+
+    <DashboardCard id="content" title="Content Audit" icon={iconContent} color="gray">
+      <p>{contentAudit.wordCount} words, {contentAudit.imagesInContent} images, {contentAudit.internalLinks.contextual} contextual links</p>
+    </DashboardCard>
+
+    <DashboardCard id="cwv" title="Core Web Vitals" icon={iconCwv} color="blue">
+      <div class="flex items-center gap-3 flex-wrap">
+        <span class="inline-flex items-center gap-1.5 text-xs">
+          <span class={`w-2 h-2 rounded-full ${dotColor(lighthouse.mobile.performance)}`}></span>
+          Perf {lighthouse.mobile.performance}/{lighthouse.desktop.performance}
+        </span>
+        <span class="inline-flex items-center gap-1.5 text-xs">
+          <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          SEO {lighthouse.mobile.seo}/{lighthouse.desktop.seo}
+        </span>
+        <span class="inline-flex items-center gap-1.5 text-xs">
+          <span class={`w-2 h-2 rounded-full ${dotColor(lighthouse.mobile.accessibility)}`}></span>
+          A11y {lighthouse.mobile.accessibility}/{lighthouse.desktop.accessibility}
+        </span>
+      </div>
+    </DashboardCard>
+
+    <DashboardCard id="assessment" title="Report Assessment" icon={iconAssessment} color="gray">
+      <p>Data coverage and known gaps</p>
+    </DashboardCard>
+
+    {techStack && (
+      <DashboardCard id="tech-stack" title="Tech Stack" icon={iconTech} color="slate" adminOnly={true}>
+        <p>{techStack.cms} + {techStack.builder} + {techStack.seoPlugin}</p>
+      </DashboardCard>
+    )}
   </div>
 
   <!-- ============================================ -->
-  <!-- SERP FEATURES -->
+  <!-- MODALS -->
   <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">SERP Landscape</h3>
-      <p class="text-sm text-gray-600">What's competing for clicks alongside this page</p>
+
+  <!-- What's Working Modal -->
+  <DashboardModal id="strengths" title="What's Working">
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6">
+      <h3 class="text-lg font-semibold text-green-900 mb-2">{strength.headline}</h3>
+      <p class="text-sm text-green-800 leading-relaxed">{strength.detail}</p>
+      <p class="text-sm text-green-700 mt-2"><strong>Competition:</strong> Keyword difficulty {strength.kd}</p>
     </div>
-    <div class="p-6">
-      <p class="text-sm text-gray-700 mb-4">{serpFeatures.summary}</p>
+  </DashboardModal>
 
-      <div class="space-y-4 mb-6">
-        {serpFeatures.keywords.map(kw => (
-          <div class="border border-gray-200 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-sm font-semibold text-gray-900">"{kw.query}"</span>
-              <div class="flex items-center gap-3 text-xs text-gray-500">
-                <span>{kw.volume.toLocaleString()} vol/mo</span>
-                {kw.position && <span>Pos #{kw.position}</span>}
-                {kw.kd !== null && <span>KD {kw.kd}</span>}
-              </div>
-            </div>
-            <div class="flex flex-wrap gap-1.5 mb-2">
-              {kw.features.map(feat => (
-                <span class={`text-xs px-2 py-0.5 rounded-full ${
-                  feat === 'Ads top' || feat === 'Ads bottom' ? 'bg-red-100 text-red-700' :
-                  feat === 'AI Overview' ? 'bg-purple-100 text-purple-700' :
-                  feat === 'People also ask' ? 'bg-amber-100 text-amber-700' :
-                  feat === 'Discussions and forums' ? 'bg-blue-100 text-blue-700' :
-                  'bg-gray-100 text-gray-600'
-                }`}>{feat}</span>
-              ))}
-            </div>
-            <p class="text-xs text-gray-600">{kw.note}</p>
-          </div>
-        ))}
-      </div>
-
-      <!-- CTR context -->
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-        <p class="text-sm text-blue-800"><strong>CTR in context:</strong> {serpFeatures.ctrContext}</p>
-      </div>
-
-      <!-- Crash theory -->
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p class="text-sm text-amber-800"><strong>Impression crash theory:</strong> {serpFeatures.crashTheory}</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- IMPRESSION TREND -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Impressions Trend</h3>
-      <p class="text-sm text-gray-600">Daily impressions — Jan 1 to Feb 17, 2026</p>
-    </div>
-    <div class="p-6">
-      <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="text-center p-3 bg-green-50 rounded-lg">
-          <p class="text-lg font-bold text-green-700">{preCrashAvg}</p>
-          <p class="text-xs text-green-600">Avg/day (before Feb 8)</p>
-        </div>
-        <div class="text-center p-3 bg-red-50 rounded-lg">
-          <p class="text-lg font-bold text-red-700">{postCrashAvg}</p>
-          <p class="text-xs text-red-600">Avg/day (after Feb 8)</p>
-        </div>
-        <div class="text-center p-3 bg-red-50 rounded-lg">
-          <p class="text-lg font-bold text-red-700">-{crashPercent}%</p>
-          <p class="text-xs text-red-600">Impression drop</p>
-        </div>
-      </div>
-
-      <!-- CSS bar chart -->
-      <div class="flex items-end gap-px h-40">
-        {timeSeries.map(day => {
-          const maxImp = Math.max(...timeSeries.map(d => d.impressions));
-          const heightPct = (day.impressions / maxImp) * 100;
-          const isPostCrash = day.date >= "2026-02-08";
-          return (
-            <div class="flex-1 flex flex-col items-center group relative" title={`${day.date}: ${day.impressions} imp, ${day.clicks} clicks`}>
-              <div
-                class={`w-full rounded-t transition-colors ${isPostCrash ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'}`}
-                style={`height: ${heightPct}%`}
-              ></div>
-              <div class="absolute bottom-full mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                {day.date.slice(5)}: {day.impressions} imp, {day.clicks} clicks
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div class="flex justify-between mt-2 text-xs text-gray-400">
-        <span>Jan 1</span>
-        <span class="text-red-500 font-medium">Feb 8</span>
-        <span>Feb 17</span>
-      </div>
-      <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
-        <span class="flex items-center"><span class="w-3 h-3 bg-blue-400 rounded mr-1"></span> Pre-crash</span>
-        <span class="flex items-center"><span class="w-3 h-3 bg-red-400 rounded mr-1"></span> Post-crash</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- KEYWORDS -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Keywords ({keywords.length})</h3>
-      <p class="text-sm text-gray-600">All search queries from GSC ({gsc.dateRange})</p>
-    </div>
-
-    <div class="px-6 pt-4 pb-2">
-      <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider">
-        Driving clicks ({clickKeywords.length})
-      </h4>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-            <th class="px-6 py-3 text-left">Query</th>
-            <th class="px-4 py-3 text-right">Position</th>
-            <th class="px-4 py-3 text-right">Clicks</th>
-            <th class="px-4 py-3 text-right">Impressions</th>
-            <th class="px-4 py-3 text-right">CTR</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          {clickKeywords.map(kw => (
-            <tr class="hover:bg-gray-50">
-              <td class="px-6 py-2.5 text-sm text-gray-900 font-medium">{kw.query}</td>
-              <td class="px-4 py-2.5 text-right">
-                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${kw.position <= 5 ? 'bg-green-100 text-green-800' : kw.position <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
-                  #{kw.position.toFixed(1)}
-                </span>
-              </td>
-              <td class="px-4 py-2.5 text-right text-sm font-semibold text-gray-900">{kw.clicks}</td>
-              <td class="px-4 py-2.5 text-right text-sm text-gray-600">{kw.impressions.toLocaleString()}</td>
-              <td class="px-4 py-2.5 text-right text-sm text-gray-600">{kw.ctr}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Impression-only keywords (collapsed) -->
-    <div class="border-t border-gray-200">
-      <button data-toggle="impression-keywords" class="w-full text-left px-6 py-3 hover:bg-gray-50 transition-colors">
-        <div class="flex items-center justify-between">
-          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-            Impression-only — no clicks yet ({impressionOnlyKeywords.length})
-          </h4>
-          <svg class="w-5 h-5 text-gray-400 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-        </div>
-      </button>
-      <div id="impression-keywords" class="hidden">
-        <table class="w-full">
-          <tbody class="divide-y divide-gray-50">
-            {impressionOnlyKeywords.map(kw => (
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-2 text-sm text-gray-600">{kw.query}</td>
-                <td class="px-4 py-2 text-right">
-                  <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${kw.position <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
-                    #{kw.position.toFixed(1)}
-                  </span>
-                </td>
-                <td class="px-4 py-2 text-right text-sm text-gray-400">0</td>
-                <td class="px-4 py-2 text-right text-sm text-gray-500">{kw.impressions}</td>
-                <td class="px-4 py-2 text-right text-sm text-gray-400">0%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- CONTENT AREA AUDIT -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Content Area Audit</h3>
-      <p class="text-sm text-gray-600">What's inside the WordPress content editor (not the theme template)</p>
-    </div>
-    <div class="p-6">
-      <!-- Key stats -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-          <p class="text-3xl font-bold text-gray-400">{contentAudit.wordCount}</p>
-          <p class="text-sm text-gray-500">Editorial words</p>
-        </div>
-        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-          <p class="text-3xl font-bold text-gray-400">{contentAudit.imagesInContent}</p>
-          <p class="text-sm text-gray-500">Images in content</p>
-        </div>
-        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
-          <p class="text-3xl font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
-          <p class="text-sm text-gray-500">Contextual links</p>
-        </div>
-      </div>
-
-      <p class="text-sm text-gray-700 mb-6">{contentAudit.wordCountNote}</p>
-
-      <!-- What's actually in the content area -->
-      <h4 class="text-sm font-semibold text-gray-700 mb-3">Everything in the content area</h4>
-      <div class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
-        {contentAudit.contentAreaElements.map(el => (
-          <div class="px-4 py-3 flex items-start gap-3">
-            <span class={`text-xs font-bold px-2 py-0.5 rounded mt-0.5 ${
-              el.type === 'H1' ? 'bg-purple-100 text-purple-700' :
-              el.type.startsWith('subtitle') ? 'bg-blue-100 text-blue-700' :
-              'bg-gray-200 text-gray-600'
-            }`}>{el.type}</span>
-            <div class="flex-1">
-              <p class="text-sm text-gray-800">{el.text}</p>
-              {el.linksTo && <p class="text-xs text-gray-400 font-mono mt-0.5">{el.linksTo}</p>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <!-- Internal links breakdown -->
-      <div class="mt-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Internal Links Breakdown</h4>
-        <div class="grid grid-cols-3 gap-3 mb-3">
-          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
-            <p class="text-lg font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
-            <p class="text-xs text-gray-500">Contextual (editorial)</p>
-          </div>
-          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
-            <p class="text-lg font-bold text-gray-600">{contentAudit.internalLinks.functional}</p>
-            <p class="text-xs text-gray-500">Functional (buttons)</p>
-          </div>
-          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
-            <p class="text-lg font-bold text-gray-300">{contentAudit.internalLinks.template}</p>
-            <p class="text-xs text-gray-400">Template (nav/footer)</p>
-          </div>
-        </div>
-        <p class="text-xs text-gray-500">{contentAudit.internalLinks.templateNote}</p>
-
-        <!-- Inbound links (unknown) -->
-        <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p class="text-xs text-amber-800"><strong>Inbound links to this page:</strong> {contentAudit.internalLinks.inbound}</p>
-        </div>
-
-        {contentAudit.internalLinks.potentialCannibalization && (
-          <div class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-            <p class="text-xs text-orange-800"><strong>Possible cannibalization:</strong> {contentAudit.internalLinks.potentialCannibalization}</p>
-          </div>
-        )}
-      </div>
-
-      <!-- Meta tags -->
-      <div class="mt-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Meta Tags</h4>
-        <div class="space-y-3">
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-gray-500 uppercase">Title ({contentAudit.meta.titleLength} chars)</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-800">Truncated</span>
-            </div>
-            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.title}</p>
-            <p class="text-xs text-orange-600 mt-1">{contentAudit.meta.titleIssue}</p>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-gray-500 uppercase">Description ({contentAudit.meta.descriptionLength} chars)</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">Has typo</span>
-            </div>
-            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.description}</p>
-            <p class="text-xs text-red-600 mt-1">{contentAudit.meta.descriptionIssue}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Schema -->
-      <div class="mt-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Structured Data</h4>
-        <div class="flex flex-wrap gap-2 mb-2">
-          {contentAudit.schema.types.map(type => (
-            <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 font-mono">{type}</span>
-          ))}
-        </div>
-        <div class="flex flex-wrap gap-2">
-          {contentAudit.schema.missing.map(type => (
-            <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-600 font-mono border border-red-200">+ {type}</span>
-          ))}
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Last modified: {contentAudit.schema.dateModified}</p>
-        {contentAudit.schema.issues && contentAudit.schema.issues.length > 0 && (
-          <div class="mt-3 space-y-1.5">
-            {contentAudit.schema.issues.map(issue => (
-              <div class="flex items-start text-xs text-orange-700">
-                <span class="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-1 flex-shrink-0"></span>
-                {issue}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- CORE WEB VITALS / LIGHTHOUSE -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Core Web Vitals</h3>
-      <p class="text-sm text-gray-600">Lighthouse lab data (no CrUX field data available)</p>
-    </div>
-    <div class="p-6">
-      <!-- Score cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <!-- Performance -->
-        <div class="border border-gray-200 rounded-lg p-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3">Performance</h4>
-          <div class="flex justify-between items-center">
-            <div class="text-center">
-              <div class={`text-2xl font-bold ${lighthouse.mobile.performance >= 90 ? 'text-green-600' : lighthouse.mobile.performance >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.mobile.performance}</div>
-              <p class="text-xs text-gray-500">Mobile</p>
-            </div>
-            <div class="text-center">
-              <div class={`text-2xl font-bold ${lighthouse.desktop.performance >= 90 ? 'text-green-600' : lighthouse.desktop.performance >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.desktop.performance}</div>
-              <p class="text-xs text-gray-500">Desktop</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEO — with warning treatment -->
-        <button data-open-modal="seo-score-explainer" class="border-2 border-amber-300 bg-amber-50 rounded-lg p-4 cursor-pointer hover:border-amber-400 hover:bg-amber-100/60 transition-colors text-left relative group">
-          <div class="flex items-center gap-1.5 mb-3">
-            <h4 class="text-sm font-semibold text-gray-700">SEO</h4>
-            <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-            </svg>
-          </div>
-          <div class="flex justify-between items-center">
-            <div class="text-center">
-              <div class="text-2xl font-bold text-amber-600">{lighthouse.mobile.seo}</div>
-              <p class="text-xs text-gray-500">Mobile</p>
-            </div>
-            <div class="text-center">
-              <div class="text-2xl font-bold text-amber-600">{lighthouse.desktop.seo}</div>
-              <p class="text-xs text-gray-500">Desktop</p>
-            </div>
-          </div>
-          <p class="text-xs text-amber-700 mt-3 leading-tight">This score is misleading — tap to learn why</p>
-        </button>
-
-        <!-- Accessibility -->
-        <div class="border border-gray-200 rounded-lg p-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3">Accessibility</h4>
-          <div class="flex justify-between items-center">
-            <div class="text-center">
-              <div class={`text-2xl font-bold ${lighthouse.mobile.accessibility >= 90 ? 'text-green-600' : lighthouse.mobile.accessibility >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.mobile.accessibility}</div>
-              <p class="text-xs text-gray-500">Mobile</p>
-            </div>
-            <div class="text-center">
-              <div class={`text-2xl font-bold ${lighthouse.desktop.accessibility >= 90 ? 'text-green-600' : lighthouse.desktop.accessibility >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.desktop.accessibility}</div>
-              <p class="text-xs text-gray-500">Desktop</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SEO Score Explainer Modal -->
-      <div id="seo-score-explainer" class="hidden fixed inset-0 z-50">
-        <div class="absolute inset-0 bg-black/50" data-close-modal></div>
-        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-xl shadow-2xl overflow-y-auto max-h-[90vh]">
-          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white rounded-t-xl">
-            <h3 class="text-lg font-semibold text-gray-900">About the Lighthouse SEO Score</h3>
-            <button data-close-modal class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-          </div>
-          <div class="p-6 space-y-5">
-            <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <p class="text-sm text-amber-900 font-medium">A Lighthouse SEO score of 100 does NOT mean your SEO is good. It means you haven't broken any basic technical requirements.</p>
-            </div>
-
-            <div>
-              <h4 class="text-sm font-semibold text-green-700 mb-2">What it checks (basic pass/fail)</h4>
-              <ul class="space-y-1.5 text-sm text-gray-700">
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a &lt;title&gt; tag (doesn't check length or quality)</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a meta description (doesn't check typos or length)</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a canonical URL</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Not blocked by robots.txt</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a viewport meta tag</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Images have alt attributes (even empty ones pass)</li>
-                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Structured data syntax is valid (doesn't check completeness)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 class="text-sm font-semibold text-red-700 mb-2">What it does NOT check (the stuff that matters)</h4>
-              <ul class="space-y-1.5 text-sm text-gray-700">
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content quality, word count, or whether content even exists</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> E-E-A-T signals (author credentials, medical disclaimers)</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Keyword targeting or title/description optimization</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Schema completeness (missing Quiz, Person, MedicalWebPage)</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> YMYL compliance for health content</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Internal linking strategy or backlinks</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Actual search rankings or visibility</li>
-                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content freshness (this page hasn't been updated since 2022)</li>
-              </ul>
-            </div>
-
-            <div class="p-4 bg-gray-100 rounded-lg">
-              <p class="text-sm text-gray-800"><strong>This page scores 100 despite:</strong> zero editorial content, a typo in the meta description, a title tag that's 27 characters too long, no author attribution, no medical disclaimer, and missing schema types. The real SEO issues are in the report above — not in this score.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CWV table -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead>
-            <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-              <th class="py-2 text-left">Metric</th>
-              <th class="py-2 text-right">Mobile</th>
-              <th class="py-2 text-right">Desktop</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-50">
-            <tr>
-              <td class="py-2 text-gray-700">LCP</td>
-              <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.lcp}</td>
-              <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.lcp}</td>
-            </tr>
-            <tr>
-              <td class="py-2 text-gray-700">CLS</td>
-              <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.cls}</td>
-              <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.cls}</td>
-            </tr>
-            <tr>
-              <td class="py-2 text-gray-700">TBT</td>
-              <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.tbt}</td>
-              <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.tbt}</td>
-            </tr>
-            <tr>
-              <td class="py-2 text-gray-700">TTFB</td>
-              <td class="py-2 text-right font-medium text-orange-600">{lighthouse.mobile.metrics.ttfb}</td>
-              <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.ttfb}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {lighthouse.issues.length > 0 && (
-        <div class="mt-6 space-y-2">
-          {lighthouse.issues.map(item => (
-            <div class={`flex items-start p-3 rounded-lg border ${
-              item.severity === 'fail' ? 'bg-red-50 border-red-100' :
-              item.severity === 'warning' ? 'bg-orange-50 border-orange-100' :
-              'bg-gray-50 border-gray-100'
-            }`}>
-              <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mr-3 mt-0.5 ${
-                item.severity === 'fail' ? 'bg-red-200 text-red-800' :
-                item.severity === 'warning' ? 'bg-orange-200 text-orange-800' :
-                'bg-gray-200 text-gray-700'
-              }`}>{item.category}</span>
-              <p class="text-sm text-gray-800">{item.issue}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- ISSUES & RECOMMENDATIONS -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Issues & Recommendations ({issues.length})</h3>
-      <p class="text-sm text-gray-600">Page-specific issues only — site-wide issues are on the dashboard</p>
-    </div>
-    <div class="p-6 space-y-4">
+  <!-- Issues & Fixes Modal -->
+  <DashboardModal id="page-issues" title={`Issues & Recommendations (${issues.length})`} subtitle="Page-specific issues only — site-wide issues are on the dashboard">
+    <div class="space-y-4">
       {criticalIssues.length > 0 && (
         <div>
           <h4 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-2 flex items-center">
@@ -632,155 +228,524 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
         </div>
       )}
     </div>
-  </div>
+  </DashboardModal>
 
-  <!-- ============================================ -->
-  <!-- REPORT ASSESSMENT -->
-  <!-- ============================================ -->
-  <div class="bg-gray-50 rounded-lg border border-gray-200 mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-700">Report Assessment</h3>
-      <p class="text-sm text-gray-500">Data coverage and known gaps</p>
+  <!-- Keywords Modal -->
+  <DashboardModal id="keywords" title={`Keywords (${keywords.length})`} subtitle={`All search queries from GSC (${gsc.dateRange})`}>
+    <div class="mb-2">
+      <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider">
+        Driving clicks ({clickKeywords.length})
+      </h4>
     </div>
-    <div class="p-6">
-      <div class="mb-4">
-        <h4 class="text-sm font-semibold text-green-700 mb-2">What this report covers</h4>
-        <p class="text-sm text-gray-700">{adequacyAssessment.whatWeHave}</p>
-      </div>
-      <div>
-        <h4 class="text-sm font-semibold text-orange-700 mb-2">Gaps requiring deeper audit</h4>
-        <ul class="space-y-2">
-          {adequacyAssessment.whatsMissing.map(gap => (
-            <li class="flex items-start text-sm text-gray-700">
-              <span class="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
-              {gap}
-            </li>
+    <div class="overflow-x-auto mb-4">
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <th class="px-4 py-3 text-left">Query</th>
+            <th class="px-3 py-3 text-right">Position</th>
+            <th class="px-3 py-3 text-right">Clicks</th>
+            <th class="px-3 py-3 text-right">Impressions</th>
+            <th class="px-3 py-3 text-right">CTR</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {clickKeywords.map(kw => (
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-2.5 text-sm text-gray-900 font-medium">{kw.query}</td>
+              <td class="px-3 py-2.5 text-right">
+                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${kw.position <= 5 ? 'bg-green-100 text-green-800' : kw.position <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                  #{kw.position.toFixed(1)}
+                </span>
+              </td>
+              <td class="px-3 py-2.5 text-right text-sm font-semibold text-gray-900">{kw.clicks}</td>
+              <td class="px-3 py-2.5 text-right text-sm text-gray-600">{kw.impressions.toLocaleString()}</td>
+              <td class="px-3 py-2.5 text-right text-sm text-gray-600">{kw.ctr}%</td>
+            </tr>
           ))}
-        </ul>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Impression-only keywords (collapsed) -->
+    <div class="border-t border-gray-200">
+      <button data-toggle="impression-keywords" class="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            Impression-only — no clicks yet ({impressionOnlyKeywords.length})
+          </h4>
+          <svg class="w-5 h-5 text-gray-400 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </div>
+      </button>
+      <div id="impression-keywords" class="hidden">
+        <table class="w-full">
+          <tbody class="divide-y divide-gray-50">
+            {impressionOnlyKeywords.map(kw => (
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 text-sm text-gray-600">{kw.query}</td>
+                <td class="px-3 py-2 text-right">
+                  <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${kw.position <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800'}`}>
+                    #{kw.position.toFixed(1)}
+                  </span>
+                </td>
+                <td class="px-3 py-2 text-right text-sm text-gray-400">0</td>
+                <td class="px-3 py-2 text-right text-sm text-gray-500">{kw.impressions}</td>
+                <td class="px-3 py-2 text-right text-sm text-gray-400">0%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-sm text-blue-800"><strong>Verdict:</strong> {adequacyAssessment.verdict}</p>
+    </div>
+  </DashboardModal>
+
+  <!-- SERP Landscape Modal -->
+  <DashboardModal id="serp" title="SERP Landscape" subtitle="What's competing for clicks alongside this page">
+    <p class="text-sm text-gray-700 mb-4">{serpFeatures.summary}</p>
+
+    <div class="space-y-4 mb-6">
+      {serpFeatures.keywords.map(kw => (
+        <div class="border border-gray-200 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-gray-900">"{kw.query}"</span>
+            <div class="flex items-center gap-3 text-xs text-gray-500">
+              <span>{kw.volume.toLocaleString()} vol/mo</span>
+              {kw.position && <span>Pos #{kw.position}</span>}
+              {kw.kd !== null && <span>KD {kw.kd}</span>}
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            {kw.features.map(feat => (
+              <span class={`text-xs px-2 py-0.5 rounded-full ${
+                feat === 'Ads top' || feat === 'Ads bottom' ? 'bg-red-100 text-red-700' :
+                feat === 'AI Overview' ? 'bg-purple-100 text-purple-700' :
+                feat === 'People also ask' ? 'bg-amber-100 text-amber-700' :
+                feat === 'Discussions and forums' ? 'bg-blue-100 text-blue-700' :
+                'bg-gray-100 text-gray-600'
+              }`}>{feat}</span>
+            ))}
+          </div>
+          <p class="text-xs text-gray-600">{kw.note}</p>
+        </div>
+      ))}
+    </div>
+
+    <!-- CTR context -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <p class="text-sm text-blue-800"><strong>CTR in context:</strong> {serpFeatures.ctrContext}</p>
+    </div>
+
+    <!-- Crash theory -->
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <p class="text-sm text-amber-800"><strong>Impression crash theory:</strong> {serpFeatures.crashTheory}</p>
+    </div>
+  </DashboardModal>
+
+  <!-- Impressions Trend Modal -->
+  <DashboardModal id="trend" title="Impressions Trend" subtitle="Daily impressions — Jan 1 to Feb 17, 2026">
+    <div class="grid grid-cols-3 gap-4 mb-6">
+      <div class="text-center p-3 bg-green-50 rounded-lg">
+        <p class="text-lg font-bold text-green-700">{preCrashAvg}</p>
+        <p class="text-xs text-green-600">Avg/day (before Feb 8)</p>
+      </div>
+      <div class="text-center p-3 bg-red-50 rounded-lg">
+        <p class="text-lg font-bold text-red-700">{postCrashAvg}</p>
+        <p class="text-xs text-red-600">Avg/day (after Feb 8)</p>
+      </div>
+      <div class="text-center p-3 bg-red-50 rounded-lg">
+        <p class="text-lg font-bold text-red-700">-{crashPercent}%</p>
+        <p class="text-xs text-red-600">Impression drop</p>
+      </div>
+    </div>
+
+    <!-- CSS bar chart -->
+    <div class="flex items-end gap-px h-40">
+      {timeSeries.map(day => {
+        const maxImp = Math.max(...timeSeries.map(d => d.impressions));
+        const heightPct = (day.impressions / maxImp) * 100;
+        const isPostCrash = day.date >= "2026-02-08";
+        return (
+          <div class="flex-1 flex flex-col items-center group relative" title={`${day.date}: ${day.impressions} imp, ${day.clicks} clicks`}>
+            <div
+              class={`w-full rounded-t transition-colors ${isPostCrash ? 'bg-red-400 hover:bg-red-500' : 'bg-blue-400 hover:bg-blue-500'}`}
+              style={`height: ${heightPct}%`}
+            ></div>
+            <div class="absolute bottom-full mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+              {day.date.slice(5)}: {day.impressions} imp, {day.clicks} clicks
+            </div>
+          </div>
+        );
+      })}
+    </div>
+    <div class="flex justify-between mt-2 text-xs text-gray-400">
+      <span>Jan 1</span>
+      <span class="text-red-500 font-medium">Feb 8</span>
+      <span>Feb 17</span>
+    </div>
+    <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
+      <span class="flex items-center"><span class="w-3 h-3 bg-blue-400 rounded mr-1"></span> Pre-crash</span>
+      <span class="flex items-center"><span class="w-3 h-3 bg-red-400 rounded mr-1"></span> Post-crash</span>
+    </div>
+  </DashboardModal>
+
+  <!-- Content Audit Modal -->
+  <DashboardModal id="content" title="Content Area Audit" subtitle="What's inside the WordPress content editor (not the theme template)">
+    <!-- Key stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+        <p class="text-3xl font-bold text-gray-400">{contentAudit.wordCount}</p>
+        <p class="text-sm text-gray-500">Editorial words</p>
+      </div>
+      <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+        <p class="text-3xl font-bold text-gray-400">{contentAudit.imagesInContent}</p>
+        <p class="text-sm text-gray-500">Images in content</p>
+      </div>
+      <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+        <p class="text-3xl font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
+        <p class="text-sm text-gray-500">Contextual links</p>
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-700 mb-6">{contentAudit.wordCountNote}</p>
+
+    <!-- What's actually in the content area -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-3">Everything in the content area</h4>
+    <div class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 mb-6">
+      {contentAudit.contentAreaElements.map(el => (
+        <div class="px-4 py-3 flex items-start gap-3">
+          <span class={`text-xs font-bold px-2 py-0.5 rounded mt-0.5 ${
+            el.type === 'H1' ? 'bg-purple-100 text-purple-700' :
+            el.type.startsWith('subtitle') ? 'bg-blue-100 text-blue-700' :
+            'bg-gray-200 text-gray-600'
+          }`}>{el.type}</span>
+          <div class="flex-1">
+            <p class="text-sm text-gray-800">{el.text}</p>
+            {el.linksTo && <p class="text-xs text-gray-400 font-mono mt-0.5">{el.linksTo}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Internal links breakdown -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-3">Internal Links Breakdown</h4>
+    <div class="grid grid-cols-3 gap-3 mb-3">
+      <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+        <p class="text-lg font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
+        <p class="text-xs text-gray-500">Contextual (editorial)</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+        <p class="text-lg font-bold text-gray-600">{contentAudit.internalLinks.functional}</p>
+        <p class="text-xs text-gray-500">Functional (buttons)</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+        <p class="text-lg font-bold text-gray-300">{contentAudit.internalLinks.template}</p>
+        <p class="text-xs text-gray-400">Template (nav/footer)</p>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mb-3">{contentAudit.internalLinks.templateNote}</p>
+
+    <!-- Inbound links (unknown) -->
+    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-3">
+      <p class="text-xs text-amber-800"><strong>Inbound links to this page:</strong> {contentAudit.internalLinks.inbound}</p>
+    </div>
+
+    {contentAudit.internalLinks.potentialCannibalization && (
+      <div class="p-3 bg-orange-50 border border-orange-200 rounded-lg mb-6">
+        <p class="text-xs text-orange-800"><strong>Possible cannibalization:</strong> {contentAudit.internalLinks.potentialCannibalization}</p>
+      </div>
+    )}
+
+    <!-- Meta tags -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-3 mt-6">Meta Tags</h4>
+    <div class="space-y-3 mb-6">
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-gray-500 uppercase">Title ({contentAudit.meta.titleLength} chars)</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-800">Truncated</span>
+        </div>
+        <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.title}</p>
+        <p class="text-xs text-orange-600 mt-1">{contentAudit.meta.titleIssue}</p>
+      </div>
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-gray-500 uppercase">Description ({contentAudit.meta.descriptionLength} chars)</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">Has typo</span>
+        </div>
+        <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.description}</p>
+        <p class="text-xs text-red-600 mt-1">{contentAudit.meta.descriptionIssue}</p>
+      </div>
+    </div>
+
+    <!-- Schema -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-3">Structured Data</h4>
+    <div class="flex flex-wrap gap-2 mb-2">
+      {contentAudit.schema.types.map(type => (
+        <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 font-mono">{type}</span>
+      ))}
+    </div>
+    <div class="flex flex-wrap gap-2">
+      {contentAudit.schema.missing.map(type => (
+        <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-600 font-mono border border-red-200">+ {type}</span>
+      ))}
+    </div>
+    <p class="text-xs text-gray-500 mt-2">Last modified: {contentAudit.schema.dateModified}</p>
+    {contentAudit.schema.issues && contentAudit.schema.issues.length > 0 && (
+      <div class="mt-3 space-y-1.5">
+        {contentAudit.schema.issues.map(issue => (
+          <div class="flex items-start text-xs text-orange-700">
+            <span class="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-1 flex-shrink-0"></span>
+            {issue}
+          </div>
+        ))}
+      </div>
+    )}
+  </DashboardModal>
+
+  <!-- Core Web Vitals Modal -->
+  <DashboardModal id="cwv" title="Core Web Vitals" subtitle="Lighthouse lab data (no CrUX field data available)">
+    <!-- Score cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <!-- Performance -->
+      <div class="border border-gray-200 rounded-lg p-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Performance</h4>
+        <div class="flex justify-between items-center">
+          <div class="text-center">
+            <div class={`text-2xl font-bold ${scoreColor(lighthouse.mobile.performance)}`}>{lighthouse.mobile.performance}</div>
+            <p class="text-xs text-gray-500">Mobile</p>
+          </div>
+          <div class="text-center">
+            <div class={`text-2xl font-bold ${scoreColor(lighthouse.desktop.performance)}`}>{lighthouse.desktop.performance}</div>
+            <p class="text-xs text-gray-500">Desktop</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SEO — with warning treatment -->
+      <button data-open-modal="seo-score-explainer" class="border-2 border-amber-300 bg-amber-50 rounded-lg p-4 cursor-pointer hover:border-amber-400 hover:bg-amber-100/60 transition-colors text-left relative">
+        <div class="flex items-center gap-1.5 mb-3">
+          <h4 class="text-sm font-semibold text-gray-700">SEO</h4>
+          <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <div class="flex justify-between items-center">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-amber-600">{lighthouse.mobile.seo}</div>
+            <p class="text-xs text-gray-500">Mobile</p>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-amber-600">{lighthouse.desktop.seo}</div>
+            <p class="text-xs text-gray-500">Desktop</p>
+          </div>
+        </div>
+        <p class="text-xs text-amber-700 mt-3 leading-tight">This score is misleading — tap to learn why</p>
+      </button>
+
+      <!-- Accessibility -->
+      <div class="border border-gray-200 rounded-lg p-4">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Accessibility</h4>
+        <div class="flex justify-between items-center">
+          <div class="text-center">
+            <div class={`text-2xl font-bold ${scoreColor(lighthouse.mobile.accessibility)}`}>{lighthouse.mobile.accessibility}</div>
+            <p class="text-xs text-gray-500">Mobile</p>
+          </div>
+          <div class="text-center">
+            <div class={`text-2xl font-bold ${scoreColor(lighthouse.desktop.accessibility)}`}>{lighthouse.desktop.accessibility}</div>
+            <p class="text-xs text-gray-500">Desktop</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CWV table -->
+    <div class="overflow-x-auto mb-6">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <th class="py-2 text-left">Metric</th>
+            <th class="py-2 text-right">Mobile</th>
+            <th class="py-2 text-right">Desktop</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          <tr>
+            <td class="py-2 text-gray-700">LCP</td>
+            <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.lcp}</td>
+            <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.lcp}</td>
+          </tr>
+          <tr>
+            <td class="py-2 text-gray-700">CLS</td>
+            <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.cls}</td>
+            <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.cls}</td>
+          </tr>
+          <tr>
+            <td class="py-2 text-gray-700">TBT</td>
+            <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.tbt}</td>
+            <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.tbt}</td>
+          </tr>
+          <tr>
+            <td class="py-2 text-gray-700">TTFB</td>
+            <td class="py-2 text-right font-medium text-orange-600">{lighthouse.mobile.metrics.ttfb}</td>
+            <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.ttfb}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    {lighthouse.issues.length > 0 && (
+      <div class="space-y-2">
+        {lighthouse.issues.map(item => (
+          <div class={`flex items-start p-3 rounded-lg border ${
+            item.severity === 'fail' ? 'bg-red-50 border-red-100' :
+            item.severity === 'warning' ? 'bg-orange-50 border-orange-100' :
+            'bg-gray-50 border-gray-100'
+          }`}>
+            <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mr-3 mt-0.5 ${
+              item.severity === 'fail' ? 'bg-red-200 text-red-800' :
+              item.severity === 'warning' ? 'bg-orange-200 text-orange-800' :
+              'bg-gray-200 text-gray-700'
+            }`}>{item.category}</span>
+            <p class="text-sm text-gray-800">{item.issue}</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </DashboardModal>
+
+  <!-- SEO Score Explainer Sub-Modal (opens from within CWV modal) -->
+  <div id="seo-score-explainer" class="hidden fixed inset-0 z-[60]">
+    <div class="absolute inset-0 bg-black/50" data-close-modal></div>
+    <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-xl shadow-2xl overflow-y-auto max-h-[90vh]">
+      <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white rounded-t-xl">
+        <h3 class="text-lg font-semibold text-gray-900">About the Lighthouse SEO Score</h3>
+        <button data-close-modal class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div class="p-6 space-y-5">
+        <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <p class="text-sm text-amber-900 font-medium">A Lighthouse SEO score of 100 does NOT mean your SEO is good. It means you haven't broken any basic technical requirements.</p>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold text-green-700 mb-2">What it checks (basic pass/fail)</h4>
+          <ul class="space-y-1.5 text-sm text-gray-700">
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a &lt;title&gt; tag (doesn't check length or quality)</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a meta description (doesn't check typos or length)</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a canonical URL</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Not blocked by robots.txt</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a viewport meta tag</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Images have alt attributes (even empty ones pass)</li>
+            <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Structured data syntax is valid (doesn't check completeness)</li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="text-sm font-semibold text-red-700 mb-2">What it does NOT check (the stuff that matters)</h4>
+          <ul class="space-y-1.5 text-sm text-gray-700">
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content quality, word count, or whether content even exists</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> E-E-A-T signals (author credentials, medical disclaimers)</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Keyword targeting or title/description optimization</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Schema completeness (missing Quiz, Person, MedicalWebPage)</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> YMYL compliance for health content</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Internal linking strategy or backlinks</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Actual search rankings or visibility</li>
+            <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content freshness (this page hasn't been updated since 2022)</li>
+          </ul>
+        </div>
+
+        <div class="p-4 bg-gray-100 rounded-lg">
+          <p class="text-sm text-gray-800"><strong>This page scores 100 despite:</strong> zero editorial content, a typo in the meta description, a title tag that's 27 characters too long, no author attribution, no medical disclaimer, and missing schema types. The real SEO issues are in the report above — not in this score.</p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- ============================================ -->
-  <!-- ADMIN ONLY: TECH STACK & INTERNAL NOTES -->
-  <!-- ============================================ -->
-  <div id="admin-section" class="hidden">
-    <div class="bg-slate-800 rounded-lg shadow-sm mb-8 text-white">
-      <div class="px-6 py-4 border-b border-slate-700 flex items-center gap-2">
-        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-        </svg>
-        <h3 class="text-lg font-semibold">Admin View</h3>
-        <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full ml-auto">?user=admin</span>
-      </div>
-      <div class="p-6 space-y-6">
-        {techStack && (
-          <div>
-            <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Detected Tech Stack</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">CMS</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.cms}</p>
-              </div>
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">Page Builder</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.builder}</p>
-              </div>
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">SEO Plugin</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.seoPlugin}</p>
-              </div>
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">Caching</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.caching}</p>
-              </div>
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">CDN</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.cdn}</p>
-              </div>
-              <div class="bg-slate-700/50 rounded-lg p-3">
-                <span class="text-xs text-slate-400">Forms</span>
-                <p class="text-sm font-medium text-slate-200">{techStack.forms}</p>
-              </div>
+  <!-- Report Assessment Modal -->
+  <DashboardModal id="assessment" title="Report Assessment" subtitle="Data coverage and known gaps">
+    <div class="mb-4">
+      <h4 class="text-sm font-semibold text-green-700 mb-2">What this report covers</h4>
+      <p class="text-sm text-gray-700">{adequacyAssessment.whatWeHave}</p>
+    </div>
+    <div>
+      <h4 class="text-sm font-semibold text-orange-700 mb-2">Gaps requiring deeper audit</h4>
+      <ul class="space-y-2">
+        {adequacyAssessment.whatsMissing.map(gap => (
+          <li class="flex items-start text-sm text-gray-700">
+            <span class="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+            {gap}
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <p class="text-sm text-blue-800"><strong>Verdict:</strong> {adequacyAssessment.verdict}</p>
+    </div>
+  </DashboardModal>
+
+  <!-- Tech Stack Modal (admin only) -->
+  {techStack && (
+    <div class="admin-only hidden">
+      <DashboardModal id="tech-stack" title="Tech Stack" subtitle="Detected technologies and infrastructure">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">CMS</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.cms}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">Page Builder</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.builder}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">SEO Plugin</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.seoPlugin}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">Caching</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.caching}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">CDN</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.cdn}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <span class="text-xs text-gray-400">Forms</span>
+            <p class="text-sm font-medium text-gray-800">{techStack.forms}</p>
+          </div>
+        </div>
+
+        {techStack.analytics && (
+          <div class="mb-4">
+            <span class="text-xs text-gray-400">Analytics / Tracking ({techStack.analytics.length})</span>
+            <div class="flex flex-wrap gap-2 mt-1.5">
+              {techStack.analytics.map(a => (
+                <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono">{a}</span>
+              ))}
             </div>
-
-            {techStack.analytics && (
-              <div class="mt-3">
-                <span class="text-xs text-slate-400">Analytics / Tracking ({techStack.analytics.length})</span>
-                <div class="flex flex-wrap gap-2 mt-1.5">
-                  {techStack.analytics.map(a => (
-                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded font-mono">{a}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {techStack.renderBlocking && (
-              <div class="mt-3">
-                <span class="text-xs text-red-400">Render-Blocking Resources</span>
-                <div class="space-y-1 mt-1.5">
-                  {techStack.renderBlocking.map(r => (
-                    <div class="flex items-center text-xs text-red-300">
-                      <span class="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 flex-shrink-0"></span>
-                      {r}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {techStack.note && (
-              <p class="mt-3 text-xs text-amber-300 italic">{techStack.note}</p>
-            )}
           </div>
         )}
-      </div>
+
+        {techStack.renderBlocking && (
+          <div class="mb-4">
+            <span class="text-xs text-red-600">Render-Blocking Resources</span>
+            <div class="space-y-1 mt-1.5">
+              {techStack.renderBlocking.map(r => (
+                <div class="flex items-center text-xs text-red-700">
+                  <span class="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 flex-shrink-0"></span>
+                  {r}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {techStack.note && (
+          <p class="text-xs text-amber-600 italic">{techStack.note}</p>
+        )}
+      </DashboardModal>
     </div>
-  </div>
+  )}
 
   <div class="text-center py-4">
     <a href="/cs/" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to Dashboard</a>
   </div>
-
-  <script>
-    // Modal open/close
-    document.querySelectorAll('[data-open-modal]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-open-modal');
-        document.getElementById(id)?.classList.remove('hidden');
-      });
-    });
-    document.querySelectorAll('[data-close-modal]').forEach(el => {
-      el.addEventListener('click', () => {
-        el.closest('.fixed')?.classList.add('hidden');
-      });
-    });
-    // Close modal on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.fixed:not(.hidden)').forEach(m => m.classList.add('hidden'));
-      }
-    });
-
-    // Admin mode: ?user=admin
-    if (new URLSearchParams(window.location.search).get('user') === 'admin') {
-      const adminSection = document.getElementById('admin-section');
-      if (adminSection) adminSection.classList.remove('hidden');
-    }
-
-    // Collapsible sections
-    document.querySelectorAll('[data-toggle]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const target = document.getElementById(btn.getAttribute('data-toggle'));
-        if (target) {
-          target.classList.toggle('hidden');
-          const arrow = btn.querySelector('.toggle-arrow');
-          if (arrow) arrow.classList.toggle('rotate-180');
-        }
-      });
-    });
-  </script>
 </Layout>

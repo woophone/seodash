@@ -1,11 +1,19 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import DashboardCard from '../../components/DashboardCard.astro';
+import DashboardModal from '../../components/DashboardModal.astro';
 import { clientData } from '../../data/compulsionsolutions-data.js';
 
 const { client, overview, pages, siteWideIssues, considerations, actionPlan } = clientData;
 
 const page1Pages = pages.filter(p => p.status === 'page-1' || p.status === 'page-1-edge');
 const page2Pages = pages.filter(p => p.status === 'page-2');
+
+// Icons (heroicons mini, 20x20)
+const iconRankings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>';
+const iconIssues = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd"></path></svg>';
+const iconFindings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>';
+const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>';
 ---
 
 <Layout title={`${client.name} - SEO Dashboard`}>
@@ -58,47 +66,67 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
   )}
 
   <!-- ============================================ -->
-  <!-- PAGE RANKINGS -->
+  <!-- CARD GRID -->
   <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Your Rankings</h3>
-      <p class="text-sm text-gray-600">Pages currently ranking on Google, sorted by traffic</p>
-    </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <DashboardCard id="rankings" title="Your Rankings" icon={iconRankings} color="blue">
+      <p>{overview.pagesOnPage1} on page 1, {overview.pagesOnPage2} on page 2 — sorted by traffic</p>
+    </DashboardCard>
 
+    <DashboardCard id="issues" title="What's Holding You Back" icon={iconIssues} color="red" badge={`${siteWideIssues.critical.length} critical`}>
+      <p>{siteWideIssues.critical.length} critical YMYL trust gaps affecting all pages</p>
+    </DashboardCard>
+
+    {considerations && considerations.length > 0 && (
+      <DashboardCard id="findings" title="Strategic Findings" icon={iconFindings} color="amber">
+        <p>{considerations.length} untapped authority opportunities</p>
+      </DashboardCard>
+    )}
+
+    <DashboardCard id="plan" title="Action Plan" icon={iconPlan} color="green">
+      <p>{actionPlan.phases.length}-phase roadmap — starting week 1</p>
+    </DashboardCard>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- MODALS -->
+  <!-- ============================================ -->
+
+  <!-- Rankings Modal -->
+  <DashboardModal id="rankings" title="Your Rankings" subtitle="Pages currently ranking on Google, sorted by traffic">
     <!-- Page 1 Rankings -->
-    <div class="px-6 pt-4 pb-2">
+    <div class="mb-2">
       <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider flex items-center">
         <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
         Google Page 1 ({page1Pages.length} pages)
       </h4>
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto mb-6">
       <table class="w-full">
         <thead>
           <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-            <th class="px-6 py-3 text-left">Page</th>
-            <th class="px-4 py-3 text-right">Position</th>
-            <th class="px-4 py-3 text-left">Top Keyword</th>
-            <th class="px-4 py-3 text-right">Clicks</th>
-            <th class="px-4 py-3 text-right">Impressions</th>
-            <th class="px-4 py-3 text-right">CTR</th>
-            <th class="px-3 py-3 text-center">Report</th>
+            <th class="px-4 py-3 text-left">Page</th>
+            <th class="px-3 py-3 text-right">Position</th>
+            <th class="px-3 py-3 text-left">Top Keyword</th>
+            <th class="px-3 py-3 text-right">Clicks</th>
+            <th class="px-3 py-3 text-right">Impressions</th>
+            <th class="px-3 py-3 text-right">CTR</th>
+            <th class="px-2 py-3 text-center">Report</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
           {page1Pages.map(page => (
             <tr class="hover:bg-gray-50">
-              <td class="px-6 py-3">
+              <td class="px-4 py-3">
                 <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
                 <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
               </td>
-              <td class="px-4 py-3 text-right">
+              <td class="px-3 py-3 text-right">
                 <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${page.position <= 5 ? 'bg-green-100 text-green-800' : page.status === 'page-1-edge' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
                   #{page.position.toFixed(1)}
                 </span>
               </td>
-              <td class="px-4 py-3">
+              <td class="px-3 py-3">
                 {page.topKeyword ? (
                   <div>
                     <p class="text-xs text-gray-700">{page.topKeyword}</p>
@@ -110,10 +138,10 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   <p class="text-xs text-gray-400 italic">Long-tail spread</p>
                 )}
               </td>
-              <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
-              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
-              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-3 py-3 text-center">
+              <td class="px-3 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
+              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
+              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
+              <td class="px-2 py-3 text-center">
                 {page.reportSlug ? (
                   <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -135,7 +163,7 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
     </div>
 
     <!-- Page 2 Rankings -->
-    <div class="px-6 pt-6 pb-2 border-t border-gray-200">
+    <div class="pt-4 mb-2 border-t border-gray-200">
       <h4 class="text-sm font-semibold text-orange-700 uppercase tracking-wider flex items-center">
         <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
         Google Page 2 — push these to page 1 ({page2Pages.length} pages)
@@ -145,28 +173,28 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
       <table class="w-full">
         <thead>
           <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-            <th class="px-6 py-3 text-left">Page</th>
-            <th class="px-4 py-3 text-right">Position</th>
-            <th class="px-4 py-3 text-left">Top Keyword</th>
-            <th class="px-4 py-3 text-right">Clicks</th>
-            <th class="px-4 py-3 text-right">Impressions</th>
-            <th class="px-4 py-3 text-right">CTR</th>
-            <th class="px-3 py-3 text-center">Report</th>
+            <th class="px-4 py-3 text-left">Page</th>
+            <th class="px-3 py-3 text-right">Position</th>
+            <th class="px-3 py-3 text-left">Top Keyword</th>
+            <th class="px-3 py-3 text-right">Clicks</th>
+            <th class="px-3 py-3 text-right">Impressions</th>
+            <th class="px-3 py-3 text-right">CTR</th>
+            <th class="px-2 py-3 text-center">Report</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
           {page2Pages.map(page => (
             <tr class="hover:bg-gray-50">
-              <td class="px-6 py-3">
+              <td class="px-4 py-3">
                 <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
                 <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
               </td>
-              <td class="px-4 py-3 text-right">
+              <td class="px-3 py-3 text-right">
                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-800">
                   #{page.position.toFixed(1)}
                 </span>
               </td>
-              <td class="px-4 py-3">
+              <td class="px-3 py-3">
                 {page.topKeyword ? (
                   <div>
                     <p class="text-xs text-gray-700">{page.topKeyword}</p>
@@ -178,10 +206,10 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   <p class="text-xs text-gray-400 italic">Long-tail spread</p>
                 )}
               </td>
-              <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
-              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
-              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-3 py-3 text-center">
+              <td class="px-3 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
+              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
+              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
+              <td class="px-2 py-3 text-center">
                 {page.reportSlug ? (
                   <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -201,54 +229,37 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
         </tbody>
       </table>
     </div>
-    <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-      <p class="text-xs text-gray-500">All position and traffic data from Google Search Console. Click the green checkmark to view the full page report.</p>
-    </div>
-  </div>
+    <p class="text-xs text-gray-500 mt-4 pt-3 border-t border-gray-100">All position and traffic data from Google Search Console. Click the green checkmark to view the full page report.</p>
+  </DashboardModal>
 
-  <!-- ============================================ -->
-  <!-- SITE-WIDE ISSUES (Critical YMYL only) -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">What's Holding You Back</h3>
-      <p class="text-sm text-gray-600">YMYL trust signal gaps affecting all {pages.length} tracked pages</p>
-    </div>
-    <div class="p-6">
-      <div class="space-y-2">
-        {siteWideIssues.critical.map(item => (
-          <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
-            <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-            </svg>
-            <div class="flex-1">
-              <p class="text-sm text-red-900">{item.issue}</p>
-              <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
-            </div>
+  <!-- Issues Modal -->
+  <DashboardModal id="issues" title="What's Holding You Back" subtitle={`YMYL trust signal gaps affecting all ${pages.length} tracked pages`}>
+    <div class="space-y-2">
+      {siteWideIssues.critical.map(item => (
+        <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
+          <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm text-red-900">{item.issue}</p>
+            <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
           </div>
-        ))}
-      </div>
-      <p class="text-xs text-gray-500 mt-4">Page-specific issues (meta tags, images, headings) are in each page's individual report.</p>
+        </div>
+      ))}
     </div>
-  </div>
+    <p class="text-xs text-gray-500 mt-4">Page-specific issues (meta tags, images, headings) are in each page's individual report.</p>
+  </DashboardModal>
 
-  <!-- ============================================ -->
-  <!-- CONSIDERATIONS -->
-  <!-- ============================================ -->
+  <!-- Strategic Findings Modal -->
   {considerations && considerations.length > 0 && (
-    <div class="mb-8">
-      <div class="px-1 mb-6">
-        <h3 class="text-2xl font-semibold text-gray-900">Considerations</h3>
-        <p class="text-sm text-gray-600 mt-1">Strategic findings from our analysis</p>
-      </div>
-
+    <DashboardModal id="findings" title="Strategic Findings" subtitle="Analysis of untapped authority opportunities">
       <div class="space-y-4">
         {considerations.map((note, index) => (
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <!-- Collapsed Header -->
             <button
               data-toggle={`consideration-${index}`}
-              class="w-full text-left px-6 py-5 hover:bg-gray-50 transition-colors"
+              class="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors"
             >
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3 flex-1 min-w-0">
@@ -259,7 +270,7 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   }`}>
                     {note.category}
                   </span>
-                  <h4 class="text-base font-semibold text-gray-900 truncate">{note.title}</h4>
+                  <h4 class="text-sm font-semibold text-gray-900 truncate">{note.title}</h4>
                 </div>
                 <div class="flex items-center space-x-2 ml-4">
                   <span class="text-sm text-blue-600 font-medium">Details</span>
@@ -272,15 +283,12 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
 
             <!-- Expanded Details -->
             <div id={`consideration-${index}`} class="hidden border-t border-gray-200">
-              <div class="px-6 py-6 space-y-5">
-
-                <!-- Finding -->
+              <div class="px-5 py-5 space-y-5">
                 <div>
                   <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">What We Found</h5>
                   <p class="text-sm text-gray-800 leading-relaxed">{note.finding}</p>
                 </div>
 
-                <!-- Source Reference (if book/external) -->
                 {note.source && (
                   <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
                     <div class="flex items-start space-x-4">
@@ -317,7 +325,6 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   </div>
                 )}
 
-                <!-- External Platforms (for entity considerations) -->
                 {note.platforms && note.platforms.length > 0 && (
                   <div>
                     <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">External Profiles (sameAs targets)</h5>
@@ -339,19 +346,16 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   </div>
                 )}
 
-                <!-- Why It Matters -->
                 <div>
                   <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Why This Matters for Rankings</h5>
                   <p class="text-sm text-gray-800 leading-relaxed">{note.whyItMatters}</p>
                 </div>
 
-                <!-- Competitive Angle -->
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h5 class="text-sm font-semibold text-blue-900 mb-2">Competitive Advantage</h5>
                   <p class="text-sm text-blue-800 leading-relaxed">{note.competitiveAngle}</p>
                 </div>
 
-                <!-- Action Items -->
                 {note.actionItems && note.actionItems.length > 0 && (
                   <div>
                     <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Implementation Steps</h5>
@@ -370,43 +374,34 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                     </div>
                   </div>
                 )}
-
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </DashboardModal>
   )}
 
-  <!-- ============================================ -->
-  <!-- ACTION PLAN -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Action Plan</h3>
-      <p class="text-sm text-gray-600">{actionPlan.summary}</p>
-    </div>
-    <div class="p-6">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {actionPlan.phases.map(phase => (
-          <div class={`border rounded-lg p-5 ${phase.priority === 'CRITICAL' ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
-            <div class="flex items-center space-x-3 mb-3">
-              <div class={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
-                {phase.phase}
-              </div>
-              <div>
-                <h4 class="font-semibold text-gray-900">{phase.name}</h4>
-                <p class="text-sm text-gray-500">{phase.timeline}</p>
-              </div>
+  <!-- Action Plan Modal -->
+  <DashboardModal id="plan" title="Action Plan" subtitle={actionPlan.summary}>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {actionPlan.phases.map(phase => (
+        <div class={`border rounded-lg p-5 ${phase.priority === 'CRITICAL' ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
+          <div class="flex items-center space-x-3 mb-3">
+            <div class={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
+              {phase.phase}
             </div>
-            <p class="text-sm text-gray-700 mb-3">{phase.description}</p>
-            <div class={`text-sm font-medium ${phase.priority === 'CRITICAL' ? 'text-red-800' : 'text-blue-800'}`}>
-              {phase.expectedImpact}
+            <div>
+              <h4 class="font-semibold text-gray-900">{phase.name}</h4>
+              <p class="text-sm text-gray-500">{phase.timeline}</p>
             </div>
           </div>
-        ))}
-      </div>
+          <p class="text-sm text-gray-700 mb-3">{phase.description}</p>
+          <div class={`text-sm font-medium ${phase.priority === 'CRITICAL' ? 'text-red-800' : 'text-blue-800'}`}>
+            {phase.expectedImpact}
+          </div>
+        </div>
+      ))}
     </div>
-  </div>
+  </DashboardModal>
 </Layout>
