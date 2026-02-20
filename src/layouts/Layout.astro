@@ -38,36 +38,16 @@ const { title } = Astro.props;
       </main>
     </div>
 
-    <!-- Modal Container -->
-    <div id="modal-container"></div>
-
     <script>
-      // Global modal functionality
-      (window as any).openModal = function(modalId: string) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
-        }
-      };
-
-      (window as any).closeModal = function(modalId: string) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
-        }
-      };
-
-      // Close modal on escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          const visibleModals = document.querySelectorAll('.modal:not(.hidden)');
-          visibleModals.forEach(modal => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-          });
-        }
+      document.querySelectorAll('[data-toggle]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.getAttribute('data-toggle')!);
+          if (target) {
+            target.classList.toggle('hidden');
+            const arrow = btn.querySelector('.toggle-arrow');
+            if (arrow) arrow.classList.toggle('rotate-180');
+          }
+        });
       });
     </script>
   </body>
@@ -76,25 +56,5 @@ const { title } = Astro.props;
 <style is:global>
   html {
     font-family: system-ui, sans-serif;
-  }
-  
-  .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 50;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .modal-content {
-    background: white;
-    border-radius: 8px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow-y: auto;
   }
 </style>

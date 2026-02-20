@@ -1,10 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { clientData } from '../data/compulsionsolutions-data.js';
-import { getClientByCode } from '../data/clients-index.js';
 
-const { client, overview, performance, keywords, competitors, technicalIssues, actionPlan } = clientData;
-const clientInfo = getClientByCode('cs');
+const { client, overview, performance, keywords, technicalIssues, actionPlan, projections } = clientData;
 ---
 
 <Layout title={`${client.name} - SEO Dashboard`}>
@@ -67,7 +65,7 @@ const clientInfo = getClientByCode('cs');
       <div class="ml-3">
         <h3 class="text-sm font-medium text-red-800">Traffic Emergency</h3>
         <p class="text-sm text-red-700 mt-1">
-          <strong>{overview.trafficDecline} traffic decline</strong> over {overview.declineTimeline}. 
+          <strong>{overview.trafficDecline} traffic decline</strong> over {overview.declineTimeline}.
           Main cause: <strong>{overview.mainIssue}</strong> starting {overview.crashDate}.
         </p>
       </div>
@@ -88,7 +86,7 @@ const clientInfo = getClientByCode('cs');
           </svg>
         </div>
       </div>
-      <p class="text-sm text-red-600 mt-1">↓ {overview.trafficDecline} from peak</p>
+      <p class="text-sm text-red-600 mt-1">{overview.trafficDecline} from peak</p>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-6">
@@ -137,93 +135,203 @@ const clientInfo = getClientByCode('cs');
     </div>
   </div>
 
-  <!-- Primary Keywords Performance Table -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Primary Keywords Performance</h3>
-      <p class="text-sm text-gray-600">Your most important keywords and their current status</p>
+  <!-- ============================================ -->
+  <!-- KEYWORD BATTLES -->
+  <!-- ============================================ -->
+  <div class="mb-8">
+    <div class="px-1 mb-6">
+      <h3 class="text-2xl font-semibold text-gray-900">Keyword Battles</h3>
+      <p class="text-sm text-gray-600 mt-1">Each keyword you're competing for — who's beating you, why, and what we'll fix</p>
     </div>
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Keyword</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Volume</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Position</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Previous Position</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monthly Clicks</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lost Clicks</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          {keywords.primary.map((keyword) => (
-            <tr class="hover:bg-gray-50 cursor-pointer" onclick={`openModal('keyword-${keyword.keyword.replace(/\s+/g, '-')}-modal')`}>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">{keyword.keyword}</div>
-                <div class="text-sm text-gray-500">Priority: {keyword.priority}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{keyword.volume.toLocaleString()}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                  #{keyword.currentPosition}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">#{keyword.previousPosition}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{keyword.currentClicks}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">-{keyword.lostClicks}</td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${keyword.status === 'MAJOR DROP' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                  {keyword.status}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600 hover:text-blue-900">
-                View Details →
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </div>
 
-  <!-- Competitive Analysis -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Competitive Landscape</h3>
-      <p class="text-sm text-gray-600">Who's ranking above you and why</p>
-    </div>
-    <div class="p-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {competitors.topThreats.map((competitor) => (
-          <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md cursor-pointer" onclick={`openModal('competitor-${competitor.domain.split('.')[0]}-modal')`}>
-            <div class="flex justify-between items-start mb-3">
-              <div>
-                <h4 class="font-semibold text-gray-900">{competitor.domain}</h4>
-                <p class="text-sm text-gray-600">Position #{competitor.position}</p>
+    <div class="space-y-4">
+      {keywords.primary.map((kw, index) => (
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          <!-- Collapsed Header (always visible) -->
+          <button
+            data-toggle={`battle-${index}`}
+            class="w-full text-left px-6 py-5 hover:bg-gray-50 transition-colors"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-4 flex-1 min-w-0">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center space-x-3 flex-wrap">
+                    <h4 class="text-lg font-semibold text-gray-900">"{kw.keyword}"</h4>
+                    <span class="text-sm text-gray-500">{kw.volume.toLocaleString()} searches/mo</span>
+                    <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${kw.status === 'MAJOR DROP' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {kw.status}
+                    </span>
+                  </div>
+                  <div class="flex items-center space-x-4 mt-2 text-sm">
+                    <span class="text-gray-600">
+                      Position: <span class="text-green-600 font-medium">#{kw.previousPosition}</span>
+                      <span class="text-gray-400 mx-1">&rarr;</span>
+                      <span class="text-red-600 font-medium">#{kw.currentPosition}</span>
+                    </span>
+                    <span class="text-red-600 font-medium">-{kw.lostClicks} clicks/mo lost</span>
+                    <span class="text-gray-500">
+                      Beating you: {kw.competitors.map(c => c.domain).join(', ')}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <span class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${competitor.threat === 'HIGH' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                {competitor.threat}
-              </span>
+              <div class="flex items-center space-x-2 ml-4">
+                <span class="text-sm text-blue-600 font-medium">See Battle</span>
+                <svg class="w-5 h-5 text-blue-600 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
             </div>
-            <div class="space-y-2 text-sm">
-              <p><strong>Traffic:</strong> {competitor.traffic.toLocaleString()} monthly</p>
-              <p><strong>Authority:</strong> {competitor.authority}</p>
-              <p><strong>Strength:</strong> {competitor.strength}</p>
-              <p class="text-blue-600">Click for strategy →</p>
+          </button>
+
+          <!-- Expanded Battle Details (hidden by default) -->
+          <div id={`battle-${index}`} class="hidden border-t border-gray-200">
+            <div class="px-6 py-6">
+
+              <!-- YOUR PAGE -->
+              <div class="mb-6">
+                <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Your Page</h5>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <p class="text-sm text-gray-700 font-medium mb-3">
+                    {client.domain}{kw.yourPage.url}
+                  </p>
+                  <div class="flex flex-wrap gap-2">
+                    {kw.yourPage.signals.map(signal => (
+                      <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${signal.present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {signal.present ? (
+                          <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                          </svg>
+                        )}
+                        {signal.label}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <!-- VS DIVIDER -->
+              <div class="flex items-center mb-6">
+                <div class="flex-1 border-t border-gray-300"></div>
+                <span class="px-4 text-sm font-bold text-gray-400 uppercase">vs</span>
+                <div class="flex-1 border-t border-gray-300"></div>
+              </div>
+
+              <!-- COMPETITORS -->
+              <div class="space-y-4 mb-6">
+                {kw.competitors.map(comp => (
+                  <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-start justify-between mb-3">
+                      <div>
+                        <div class="flex items-center space-x-3">
+                          <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white ${comp.position <= 3 ? 'bg-orange-500' : 'bg-gray-400'}`}>
+                            #{comp.position}
+                          </span>
+                          <h6 class="font-semibold text-gray-900">{comp.domain}</h6>
+                          <span class="text-sm text-gray-500">{comp.traffic.toLocaleString()} clicks/mo</span>
+                        </div>
+                        <a
+                          href={comp.pageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="text-sm text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block"
+                        >
+                          {comp.pageUrl} &nearr;
+                        </a>
+                      </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                      {comp.signals.map(signal => (
+                        <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${signal.present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {signal.present ? (
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                          ) : (
+                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                          )}
+                          {signal.label}
+                        </span>
+                      ))}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span class="font-medium text-gray-900">Their edge: </span>
+                        <span class="text-gray-700">{comp.edge}</span>
+                      </div>
+                      <div>
+                        <span class="font-medium text-gray-900">Their weakness: </span>
+                        <span class="text-gray-700">{comp.weakness}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <!-- FIX SUMMARY -->
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                  <div class="flex items-center space-x-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span class="text-sm font-semibold text-blue-900">What we'll fix:</span>
+                    <span class="text-sm text-blue-800">{kw.fix.summary}</span>
+                  </div>
+                  <div class="flex items-center space-x-4 text-sm">
+                    <span class="text-blue-700">Target: <strong>#{kw.fix.targetPosition}</strong></span>
+                    <span class="text-green-700 font-semibold">{kw.fix.expectedClickGain}</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   </div>
 
-  <!-- Technical Issues -->
+  <!-- ============================================ -->
+  <!-- KEYWORD OPPORTUNITIES -->
+  <!-- ============================================ -->
+  {keywords.opportunities.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Untapped Keyword Opportunities</h3>
+        <p class="text-sm text-gray-600">Keywords with low competition where you can win new traffic</p>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {keywords.opportunities.map(opp => (
+            <div class="border border-green-200 bg-green-50 rounded-lg p-4">
+              <h4 class="font-semibold text-gray-900 mb-1">"{opp.keyword}"</h4>
+              <div class="space-y-1 text-sm">
+                <p class="text-gray-600">{opp.volume} searches/mo</p>
+                <p class="text-gray-600">Difficulty: <span class="font-medium">{opp.difficulty}</span></p>
+                <p class="text-green-700 font-medium">{opp.opportunity}</p>
+                <p class="text-green-800 font-semibold">+{opp.potentialClicks} clicks/mo potential</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )}
+
+  <!-- ============================================ -->
+  <!-- SITE HEALTH -->
+  <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Technical Issues Requiring Immediate Attention</h3>
-      <p class="text-sm text-gray-600">Critical issues impacting your rankings</p>
+      <h3 class="text-lg font-semibold text-gray-900">Site Health Issues</h3>
+      <p class="text-sm text-gray-600">Page-wide problems impacting your rankings</p>
     </div>
     <div class="p-6">
       <!-- YMYL Issues -->
@@ -243,6 +351,27 @@ const clientInfo = getClientByCode('cs');
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
               </svg>
               <span class="text-sm text-red-800">{issue}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <!-- On-Page Issues -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="font-semibold text-gray-900 flex items-center">
+            <span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+            On-Page Issues
+          </h4>
+          <span class="text-sm text-orange-600 font-medium">{technicalIssues.onPage.severity}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {technicalIssues.onPage.issues.map((issue) => (
+            <div class="flex items-start p-3 bg-orange-50 border border-orange-200 rounded">
+              <svg class="w-4 h-4 text-orange-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-sm text-orange-800">{issue}</span>
             </div>
           ))}
         </div>
@@ -271,159 +400,68 @@ const clientInfo = getClientByCode('cs');
     </div>
   </div>
 
-  <!-- Recovery Timeline -->
+  <!-- ============================================ -->
+  <!-- RECOVERY PLAN (simplified for sales audit) -->
+  <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Recovery Action Plan</h3>
-      <p class="text-sm text-gray-600">Phased approach to restore and exceed previous performance</p>
+      <h3 class="text-lg font-semibold text-gray-900">Recovery Plan</h3>
+      <p class="text-sm text-gray-600">Our phased approach to restore and exceed your previous performance</p>
     </div>
     <div class="p-6">
-      <div class="space-y-6">
-        {actionPlan.phases.map((phase, index) => (
-          <div class="border border-gray-200 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center">
-                <div class={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium text-white mr-3 ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
-                  {phase.phase}
-                </div>
-                <div>
-                  <h4 class="font-semibold text-gray-900">{phase.name}</h4>
-                  <p class="text-sm text-gray-600">{phase.timeline}</p>
-                </div>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Phases -->
+        {actionPlan.phases.map(phase => (
+          <div class="border border-gray-200 rounded-lg p-5">
+            <div class="flex items-center space-x-3 mb-3">
+              <div class={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
+                {phase.phase}
               </div>
-              <div class="text-right">
-                <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${phase.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
-                  {phase.priority}
-                </span>
-                <p class="text-sm text-gray-600 mt-1">{phase.expectedImpact}</p>
+              <div>
+                <h4 class="font-semibold text-gray-900">{phase.name}</h4>
+                <p class="text-sm text-gray-500">{phase.timeline}</p>
               </div>
             </div>
-            <div class="ml-11">
-              <div class="space-y-2">
-                {phase.tasks.slice(0, 2).map((task) => (
-                  <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div>
-                      <p class="text-sm font-medium text-gray-900">{task.task}</p>
-                      <p class="text-xs text-gray-600">{task.description}</p>
-                    </div>
-                    <div class="text-right">
-                      <p class="text-xs text-gray-500">{task.time}</p>
-                    </div>
-                  </div>
-                ))}
-                {phase.tasks.length > 2 && (
-                  <button class="text-sm text-blue-600 hover:text-blue-800" onclick={`openModal('phase-${phase.phase}-modal')`}>
-                    View all {phase.tasks.length} tasks →
-                  </button>
-                )}
-              </div>
+            <div class="flex items-center justify-between">
+              <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${phase.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                {phase.priority}
+              </span>
+              <span class="text-sm text-gray-600">{phase.taskCount} action items</span>
             </div>
+            <p class="text-sm text-green-700 font-medium mt-3">{phase.expectedImpact}</p>
           </div>
         ))}
+
+        <!-- Projections -->
+        <div class="border border-green-200 bg-green-50 rounded-lg p-5">
+          <h4 class="font-semibold text-gray-900 mb-4">Projected Results</h4>
+          <div class="space-y-4">
+            {projections.timeline.map(proj => (
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-gray-900">Week {proj.week}</p>
+                  <p class="text-xs text-gray-600">{proj.status}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-lg font-bold text-green-700">{proj.expectedClicks.toLocaleString()}</p>
+                  <p class="text-xs text-gray-500">clicks/mo</p>
+                </div>
+              </div>
+            ))}
+            <div class="border-t border-green-300 pt-3 mt-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-900">Current</span>
+                <span class="text-lg font-bold text-red-600">{performance.current28Days.clicks}</span>
+              </div>
+              <p class="text-xs text-green-700 font-medium mt-1">
+                +{Math.round(((projections.timeline[projections.timeline.length - 1].expectedClicks - performance.current28Days.clicks) / performance.current28Days.clicks) * 100)}% projected growth
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
-
-  <!-- Modals will be inserted here by JavaScript -->
-</Layout>
-
-<!-- Keyword Detail Modals -->
-{keywords.primary.map((keyword) => (
-  <div id={`keyword-${keyword.keyword.replace(/\s+/g, '-')}-modal`} class="modal hidden">
-    <div class="modal-content p-6 m-4 max-w-2xl">
-      <div class="flex justify-between items-start mb-4">
-        <h3 class="text-xl font-semibold text-gray-900">Keyword Analysis: {keyword.keyword}</h3>
-        <button onclick={`closeModal('keyword-${keyword.keyword.replace(/\s+/g, '-')}-modal')`} class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="space-y-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-gray-50 p-3 rounded">
-            <p class="text-sm text-gray-600">Search Volume</p>
-            <p class="text-2xl font-bold text-gray-900">{keyword.volume.toLocaleString()}/month</p>
-          </div>
-          <div class="bg-red-50 p-3 rounded">
-            <p class="text-sm text-red-600">Position Drop</p>
-            <p class="text-2xl font-bold text-red-900">#{keyword.previousPosition} → #{keyword.currentPosition}</p>
-          </div>
-        </div>
-        <div>
-          <h4 class="font-medium text-gray-900 mb-2">Impact Analysis</h4>
-          <p class="text-sm text-gray-700">This keyword dropped from position {keyword.previousPosition} to {keyword.currentPosition}, resulting in a loss of {keyword.lostClicks} monthly clicks. At {keyword.volume.toLocaleString()} monthly searches, recovering to position 2-3 could generate an additional 200-300 monthly clicks.</p>
-        </div>
-        <div>
-          <h4 class="font-medium text-gray-900 mb-2">Recovery Strategy</h4>
-          <ul class="text-sm text-gray-700 space-y-1">
-            <li>• Add medical disclaimers to establish YMYL compliance</li>
-            <li>• Display licensed therapist credentials prominently</li>
-            <li>• Add research citations for clinical legitimacy</li>
-            <li>• Optimize title tag for higher CTR</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-))}
-
-<!-- Competitor Detail Modals -->
-{competitors.topThreats.map((competitor) => (
-  <div id={`competitor-${competitor.domain.split('.')[0]}-modal`} class="modal hidden">
-    <div class="modal-content p-6 m-4 max-w-2xl">
-      <div class="flex justify-between items-start mb-4">
-        <h3 class="text-xl font-semibold text-gray-900">Competitor Analysis: {competitor.domain}</h3>
-        <button onclick={`closeModal('competitor-${competitor.domain.split('.')[0]}-modal')`} class="text-gray-400 hover:text-gray-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="space-y-4">
-        <div class="grid grid-cols-3 gap-4">
-          <div class="bg-gray-50 p-3 rounded text-center">
-            <p class="text-sm text-gray-600">Position</p>
-            <p class="text-2xl font-bold text-gray-900">#{competitor.position}</p>
-          </div>
-          <div class="bg-blue-50 p-3 rounded text-center">
-            <p class="text-sm text-blue-600">Monthly Traffic</p>
-            <p class="text-2xl font-bold text-blue-900">{competitor.traffic.toLocaleString()}</p>
-          </div>
-          <div class="bg-orange-50 p-3 rounded text-center">
-            <p class="text-sm text-orange-600">Authority Score</p>
-            <p class="text-2xl font-bold text-orange-900">{competitor.authority}</p>
-          </div>
-        </div>
-        <div>
-          <h4 class="font-medium text-gray-900 mb-2">Why They're Winning</h4>
-          <p class="text-sm text-gray-700">{competitor.strength}</p>
-          <div class="mt-2">
-            <p class="text-sm font-medium text-gray-900">Dominating Keywords:</p>
-            <ul class="text-sm text-gray-700 mt-1">
-              {competitor.keywords.map((kw) => (
-                <li>• {kw}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div>
-          <h4 class="font-medium text-gray-900 mb-2">Their Weakness</h4>
-          <p class="text-sm text-gray-700">{competitor.weakness}</p>
-        </div>
-        <div>
-          <h4 class="font-medium text-gray-900 mb-2">How to Beat Them</h4>
-          <p class="text-sm text-gray-700">
-            {competitor.domain.includes('sagebrush') ? 
-              'Focus on specialist authority vs general counseling. Create more comprehensive assessments and establish stronger clinical credentials than their single page approach.' :
-            competitor.domain.includes('psychology-tools') ?
-              'Make assessments more accessible and user-friendly while maintaining clinical validity. Target specific demographics they miss (teens, women, ADHD).' :
-              'Combine their content accessibility with professional medical authority they lack. Add proper medical disclaimers and licensed therapist credentials.'
-            }
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-))}
 </Layout>
