@@ -1,12 +1,19 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import DashboardModal from '../../components/DashboardModal.astro';
 import { clientData } from '../../data/compulsionsolutions-data.js';
 
 const { client, overview, pages } = clientData;
 
-// Pre-process pages for template use (Astro JSX can't use < > in expressions)
+// Split audited vs non-audited
+const auditedPages = pages.filter(p => p.reportSlug);
+const unauditedPages = pages.filter(p => !p.reportSlug);
+
+// Position counts (avoid < > in Astro JSX)
 const page1Count = pages.filter(p => p.position <= 10.4).length;
 const page2Count = pages.filter(p => p.position > 10.4 && p.position <= 20).length;
+// Pages ranking 6-10 (on page 1 but low visibility)
+const lowPage1Count = pages.filter(p => p.position >= 5.5 && p.position <= 10.4).length;
 
 function posColor(pos) {
   if (pos <= 10.4) return 'bg-green-100 text-green-800';
@@ -20,7 +27,8 @@ function posTextColor(pos) {
   return 'text-gray-500';
 }
 
-const processedPages = pages.map((page, i) => ({
+// Pre-process audited pages for keyword display
+const processedAudited = auditedPages.map((page, i) => ({
   ...page,
   index: i,
   posColor: posColor(page.position),
@@ -83,109 +91,180 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
     </div>
   )}
 
-  <!-- Pages + Keywords Browser -->
-  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+  <!-- Opportunity Callout -->
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-blue-900">{page1Count} of your pages are already on Google page 1</p>
+          <p class="text-sm text-blue-800 mt-1">
+            {lowPage1Count} of them rank in positions 6–10 — technically on page 1, but where most searchers never scroll.
+            A detailed audit identifies exactly what's keeping each page from reaching the top positions where the real traffic is.
+          </p>
+        </div>
+      </div>
+      <button data-open-modal="opportunity" class="text-sm font-medium text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0 underline underline-offset-2">
+        See why this matters
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- AUDITED PAGES -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
     <div class="px-6 py-4 border-b border-gray-200">
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-900">Pages & Keywords</h3>
-        <p class="text-xs text-gray-400">{page1Count} on page 1 &middot; {page2Count} on page 2 &middot; sorted by clicks</p>
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-gray-900">Audited Pages</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">{auditedPages.length} complete</span>
+        </div>
       </div>
     </div>
 
     <div class="divide-y divide-gray-100">
-      {processedPages.map(page => (
-          <div class="page-row">
-            {/* Page header row — always visible */}
-            <button
-              data-toggle={`page-${page.index}`}
-              class="w-full text-left px-6 py-4 hover:bg-gray-50 transition-colors"
-            >
-              <div class="flex items-center justify-between gap-4">
-                <div class="flex items-center gap-4 flex-1 min-w-0">
-                  <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${page.posColor}`}>
-                    #{page.position.toFixed(1)}
-                  </span>
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <p class="text-sm font-medium text-gray-900 truncate">{page.shortName}</p>
-                      {page.reportSlug && (
-                        <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800 flex-shrink-0" title="View audit report" onclick="event.stopPropagation()">
-                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                          </svg>
-                          <span class="text-xs ml-0.5">Audit</span>
-                        </a>
-                      )}
-                    </div>
-                    <p class="text-xs text-gray-400 truncate">{page.url}</p>
+      {processedAudited.map(page => (
+        <div>
+          {/* Audited page header row — expandable */}
+          <button
+            data-toggle={`audited-${page.index}`}
+            class="w-full text-left px-6 py-4 hover:bg-gray-50 transition-colors"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-4 flex-1 min-w-0">
+                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${page.posColor}`}>
+                  #{page.position.toFixed(1)}
+                </span>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-medium text-gray-900 truncate">{page.shortName}</p>
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                      </svg>
+                      Audited
+                    </span>
                   </div>
-                </div>
-                <div class="flex items-center gap-6 flex-shrink-0">
-                  <div class="text-right hidden sm:block">
-                    <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
-                    <p class="text-xs text-gray-400">clicks</p>
-                  </div>
-                  <div class="text-right hidden sm:block">
-                    <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
-                    <p class="text-xs text-gray-400">impr</p>
-                  </div>
-                  <div class="text-right hidden md:block">
-                    <p class="text-sm text-gray-600">{page.ctr}%</p>
-                    <p class="text-xs text-gray-400">CTR</p>
-                  </div>
-                  <div class="flex items-center gap-1 text-gray-400">
-                    <span class="text-xs">{page.queries.length} kw</span>
-                    <svg class="w-4 h-4 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
+                  <p class="text-xs text-gray-400 truncate">{page.url}</p>
                 </div>
               </div>
-            </button>
+              <div class="flex items-center gap-6 flex-shrink-0">
+                <div class="text-right hidden sm:block">
+                  <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
+                  <p class="text-xs text-gray-400">clicks</p>
+                </div>
+                <div class="text-right hidden sm:block">
+                  <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
+                  <p class="text-xs text-gray-400">impr</p>
+                </div>
+                <div class="text-right hidden md:block">
+                  <p class="text-sm text-gray-600">{page.ctr}%</p>
+                  <p class="text-xs text-gray-400">CTR</p>
+                </div>
+                <div class="flex items-center gap-1 text-gray-400">
+                  <span class="text-xs">{page.queries.length} kw</span>
+                  <svg class="w-4 h-4 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </button>
 
-            {/* Expanded keyword detail */}
-            <div id={`page-${page.index}`} class="hidden border-t border-gray-100 bg-gray-50">
-              <div class="px-6 py-4">
-                {/* Mobile metrics (hidden on desktop where they show in header) */}
-                <div class="grid grid-cols-3 gap-3 mb-4 sm:hidden">
-                  <div class="bg-white rounded p-2 text-center">
-                    <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
-                    <p class="text-xs text-gray-400">clicks</p>
-                  </div>
-                  <div class="bg-white rounded p-2 text-center">
-                    <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
-                    <p class="text-xs text-gray-400">impr</p>
-                  </div>
-                  <div class="bg-white rounded p-2 text-center">
-                    <p class="text-sm text-gray-600">{page.ctr}%</p>
-                    <p class="text-xs text-gray-400">CTR</p>
+          {/* Expanded detail with CTA + keywords */}
+          <div id={`audited-${page.index}`} class="hidden border-t border-gray-100 bg-gray-50">
+            <div class="px-6 py-4">
+              {/* CTA — View Detailed Report */}
+              <a href={`/cs/pages/${page.reportSlug}/`} class="flex items-center justify-between p-4 mb-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors group">
+                <div>
+                  <p class="font-semibold">View Detailed Report</p>
+                  <p class="text-sm text-blue-200">Full audit with keyword analysis, SERP landscape, content review, and recommendations</p>
+                </div>
+                <svg class="w-5 h-5 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+              </a>
+
+              {/* Mobile metrics */}
+              <div class="grid grid-cols-3 gap-3 mb-4 sm:hidden">
+                <div class="bg-white rounded p-2 text-center">
+                  <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
+                  <p class="text-xs text-gray-400">clicks</p>
+                </div>
+                <div class="bg-white rounded p-2 text-center">
+                  <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
+                  <p class="text-xs text-gray-400">impr</p>
+                </div>
+                <div class="bg-white rounded p-2 text-center">
+                  <p class="text-sm text-gray-600">{page.ctr}%</p>
+                  <p class="text-xs text-gray-400">CTR</p>
+                </div>
+              </div>
+
+              {/* Keywords with clicks */}
+              {page.clickQueries.length >= 1 && (
+                <div class="mb-4">
+                  <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Driving clicks ({page.clickQueries.length})</p>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-xs text-gray-400 uppercase tracking-wider">
+                          <th class="text-left py-1.5 pr-3">Keyword</th>
+                          <th class="text-right py-1.5 px-2">Clicks</th>
+                          <th class="text-right py-1.5 px-2">Impr</th>
+                          <th class="text-right py-1.5 px-2">CTR</th>
+                          <th class="text-right py-1.5 pl-2">Pos</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {page.clickQueries.map(q => (
+                          <tr class="border-t border-gray-200">
+                            <td class="py-1.5 pr-3 text-gray-800">{q.query}</td>
+                            <td class="py-1.5 px-2 text-right font-medium text-gray-900">{q.clicks}</td>
+                            <td class="py-1.5 px-2 text-right text-gray-500">{q.impressions.toLocaleString()}</td>
+                            <td class="py-1.5 px-2 text-right text-gray-500">{q.ctr}%</td>
+                            <td class="py-1.5 pl-2 text-right">
+                              <span class={`text-xs font-medium ${posTextColor(q.position)}`}>
+                                {q.position}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
+              )}
 
-                {/* Keywords with clicks */}
-                {page.clickQueries.length >= 1 && (
-                  <div class="mb-4">
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Driving clicks ({page.clickQueries.length})</p>
+              {/* Impression-only keywords */}
+              {page.impressionOnlyQueries.length >= 1 && (
+                <div>
+                  <button data-toggle={`audited-${page.index}-impr`} class="flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 hover:text-gray-600">
+                    <span>Impressions only ({page.impressionOnlyQueries.length})</span>
+                    <svg class="w-3 h-3 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </button>
+                  <div id={`audited-${page.index}-impr`} class="hidden">
                     <div class="overflow-x-auto">
                       <table class="w-full text-sm">
                         <thead>
                           <tr class="text-xs text-gray-400 uppercase tracking-wider">
                             <th class="text-left py-1.5 pr-3">Keyword</th>
-                            <th class="text-right py-1.5 px-2">Clicks</th>
                             <th class="text-right py-1.5 px-2">Impr</th>
-                            <th class="text-right py-1.5 px-2">CTR</th>
                             <th class="text-right py-1.5 pl-2">Pos</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {page.clickQueries.map(q => (
+                          {page.impressionOnlyQueries.map(q => (
                             <tr class="border-t border-gray-200">
-                              <td class="py-1.5 pr-3 text-gray-800">{q.query}</td>
-                              <td class="py-1.5 px-2 text-right font-medium text-gray-900">{q.clicks}</td>
-                              <td class="py-1.5 px-2 text-right text-gray-500">{q.impressions.toLocaleString()}</td>
-                              <td class="py-1.5 px-2 text-right text-gray-500">{q.ctr}%</td>
+                              <td class="py-1.5 pr-3 text-gray-600">{q.query}</td>
+                              <td class="py-1.5 px-2 text-right text-gray-400">{q.impressions}</td>
                               <td class="py-1.5 pl-2 text-right">
-                                <span class={`text-xs font-medium ${posTextColor(q.position)}`}>
+                                <span class={`text-xs ${posTextColor(q.position)}`}>
                                   {q.position}
                                 </span>
                               </td>
@@ -195,69 +274,150 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
                       </table>
                     </div>
                   </div>
-                )}
-
-                {/* Impression-only keywords (5+ impressions, no clicks) */}
-                {page.impressionOnlyQueries.length >= 1 && (
-                  <div>
-                    <button data-toggle={`page-${page.index}-impr`} class="flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 hover:text-gray-600">
-                      <span>Impressions only ({page.impressionOnlyQueries.length})</span>
-                      <svg class="w-3 h-3 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                      </svg>
-                    </button>
-                    <div id={`page-${page.index}-impr`} class="hidden">
-                      <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                          <thead>
-                            <tr class="text-xs text-gray-400 uppercase tracking-wider">
-                              <th class="text-left py-1.5 pr-3">Keyword</th>
-                              <th class="text-right py-1.5 px-2">Impr</th>
-                              <th class="text-right py-1.5 pl-2">Pos</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {page.impressionOnlyQueries.map(q => (
-                              <tr class="border-t border-gray-200">
-                                <td class="py-1.5 pr-3 text-gray-600">{q.query}</td>
-                                <td class="py-1.5 px-2 text-right text-gray-400">{q.impressions}</td>
-                                <td class="py-1.5 pl-2 text-right">
-                                  <span class={`text-xs ${posTextColor(q.position)}`}>
-                                    {q.position}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* No keyword data case */}
-                {page.queries.length === 0 && (
-                  <p class="text-sm text-gray-400 italic">No individual keyword data available — traffic spread across many anonymized long-tail queries.</p>
-                )}
-
-                {page.reportSlug && (
-                  <div class="mt-4 pt-3 border-t border-gray-200">
-                    <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                      </svg>
-                      View full audit report
-                    </a>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
+        </div>
       ))}
     </div>
+  </div>
 
-    <div class="px-6 py-3 border-t border-gray-200 bg-gray-50">
-      <p class="text-xs text-gray-400">All data from Google Search Console &middot; {totalKeywords} total keyword entries across {pages.length} pages &middot; Pages with 3+ clicks or 200+ impressions</p>
+  <!-- ============================================ -->
+  <!-- NON-AUDITED PAGES -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h3 class="text-lg font-semibold text-gray-900">Other Ranked Pages</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{unauditedPages.length} pages</span>
+        </div>
+        <p class="text-xs text-gray-400">Ranked on Google — audit not yet performed</p>
+      </div>
+    </div>
+
+    <div class="divide-y divide-gray-100">
+      {unauditedPages.map(page => (
+        <div class="px-6 py-4 opacity-70">
+          <div class="flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
+              <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${posColor(page.position)}`}>
+                #{page.position.toFixed(1)}
+              </span>
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-700 truncate">{page.shortName}</p>
+                <p class="text-xs text-gray-400 truncate">{page.url}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-6 flex-shrink-0">
+              <div class="text-right hidden sm:block">
+                <p class="text-sm text-gray-500">{page.clicks}</p>
+                <p class="text-xs text-gray-300">clicks</p>
+              </div>
+              <div class="text-right hidden sm:block">
+                <p class="text-sm text-gray-500">{page.impressions.toLocaleString()}</p>
+                <p class="text-xs text-gray-300">impr</p>
+              </div>
+              <div class="text-right hidden md:block">
+                <p class="text-sm text-gray-500">{page.queries.length} kw</p>
+                <p class="text-xs text-gray-300">tracked</p>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500 whitespace-nowrap">
+                No audit
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   </div>
+
+  <!-- Footer -->
+  <div class="text-center py-4">
+    <p class="text-xs text-gray-400">All data from Google Search Console &middot; {totalKeywords} keyword entries across {pages.length} pages</p>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- OPPORTUNITY MODAL -->
+  <!-- ============================================ -->
+  <DashboardModal id="opportunity" title="Your pages are on page 1 — but not where the clicks are" subtitle="What Google position really means for your traffic">
+    <!-- The click curve -->
+    <div class="mb-6">
+      <p class="text-sm text-gray-700 leading-relaxed mb-4">
+        When someone searches on Google, they almost always click one of the first few results. The difference between position 1 and position 8 isn't a small gap — it's the difference between getting traffic and being invisible.
+      </p>
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Average click-through rate by Google position</p>
+      <div class="space-y-2">
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#1</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-green-500 h-full rounded-full flex items-center justify-end pr-2" style="width: 92%">
+              <span class="text-xs font-bold text-white">~28%</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#2</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-green-400 h-full rounded-full flex items-center justify-end pr-2" style="width: 50%">
+              <span class="text-xs font-bold text-white">~15%</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#3</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-green-400 h-full rounded-full flex items-center justify-end pr-2" style="width: 36%">
+              <span class="text-xs font-bold text-white">~11%</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#5</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-blue-400 h-full rounded-full flex items-center justify-end pr-2" style="width: 16%">
+              <span class="text-xs font-bold text-white">~5%</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#8</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-orange-400 h-full rounded-full flex items-center pr-2" style="width: 8%">
+              <span class="text-xs font-bold text-white">~2%</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xs font-mono text-gray-500 w-6 text-right">#10</span>
+          <div class="flex-1 bg-gray-100 rounded-full h-6 overflow-hidden">
+            <div class="bg-red-400 h-full rounded-full flex items-center pr-2" style="width: 5%">
+              <span class="text-xs font-bold text-white">~1%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">Source: Advanced Web Ranking, industry-average CTR study (2025)</p>
+    </div>
+
+    <!-- What this means for your site -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">What this means for your site</h4>
+      <p class="text-sm text-blue-800 leading-relaxed">
+        {page1Count} of your pages rank on Google page 1 — that means Google already considers your content relevant and trustworthy enough to show. But {lowPage1Count} of them sit in positions 6–10, where click-through rates are a fraction of what positions 1–3 receive. These pages are getting thousands of impressions — people are searching for exactly what you offer — but most of them scroll past before they ever see your listing.
+      </p>
+    </div>
+
+    <!-- The opportunity -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-5">
+      <h4 class="text-sm font-semibold text-green-900 mb-2">Moving up is achievable</h4>
+      <p class="text-sm text-green-800 leading-relaxed mb-3">
+        Getting from page 2 to page 1 is hard. Getting from position 8 to position 3 on a page you're already ranking on is a different challenge entirely — it's about optimization, not starting from scratch. A page audit identifies the specific factors holding each page back: content gaps, missing trust signals, technical issues, or opportunities your competitors are exploiting that you aren't.
+      </p>
+      <p class="text-sm text-green-800 leading-relaxed">
+        The quiz page audit is an example of what this looks like — moving from position 7.9 to the top 3 for "hypersexuality test" queries would mean reaching thousands more people who are actively searching for help.
+      </p>
+    </div>
+  </DashboardModal>
 </Layout>
