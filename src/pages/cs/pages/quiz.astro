@@ -3,6 +3,7 @@ import Layout from '../../../layouts/Layout.astro';
 import { quizReport } from '../../../data/cs-quiz-report.js';
 
 const { page, strength, gsc, serpFeatures, keywords, timeSeries, lighthouse, contentAudit, issues, adequacyAssessment } = quizReport;
+const { techStack } = contentAudit;
 
 const criticalIssues = issues.filter(i => i.severity === 'critical');
 const highIssues = issues.filter(i => i.severity === 'high');
@@ -395,12 +396,26 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
       <!-- Score cards -->
       <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Performance", mobile: lighthouse.mobile.performance, desktop: lighthouse.desktop.performance },
-          { label: "SEO", mobile: lighthouse.mobile.seo, desktop: lighthouse.desktop.seo },
-          { label: "Accessibility", mobile: lighthouse.mobile.accessibility, desktop: lighthouse.desktop.accessibility },
+          { key: "performance", label: "Performance", mobile: lighthouse.mobile.performance, desktop: lighthouse.desktop.performance },
+          { key: "seo", label: "SEO", mobile: lighthouse.mobile.seo, desktop: lighthouse.desktop.seo },
+          { key: "accessibility", label: "Accessibility", mobile: lighthouse.mobile.accessibility, desktop: lighthouse.desktop.accessibility },
         ].map(cat => (
           <div class="border border-gray-200 rounded-lg p-4">
-            <h4 class="text-sm font-semibold text-gray-700 mb-3">{cat.label}</h4>
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-semibold text-gray-700">{cat.label}</h4>
+              {cat.key === 'seo' && (
+                <button
+                  data-open-modal="seo-score-explainer"
+                  class="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 cursor-pointer"
+                  title="What does this score actually mean?"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z"></path>
+                  </svg>
+                  <span>Misleading?</span>
+                </button>
+              )}
+            </div>
             <div class="flex justify-between items-center">
               <div class="text-center">
                 <div class={`text-2xl font-bold ${cat.mobile >= 90 ? 'text-green-600' : cat.mobile >= 50 ? 'text-orange-500' : 'text-red-600'}`}>
@@ -417,6 +432,53 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
             </div>
           </div>
         ))}
+      </div>
+
+      <!-- SEO Score Explainer Modal -->
+      <div id="seo-score-explainer" class="hidden fixed inset-0 z-50">
+        <div class="absolute inset-0 bg-black/50" data-close-modal></div>
+        <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-xl shadow-2xl overflow-y-auto max-h-[90vh]">
+          <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white rounded-t-xl">
+            <h3 class="text-lg font-semibold text-gray-900">About the Lighthouse SEO Score</h3>
+            <button data-close-modal class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+          </div>
+          <div class="p-6 space-y-5">
+            <div class="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p class="text-sm text-amber-900 font-medium">A Lighthouse SEO score of 100 does NOT mean your SEO is good. It means you haven't broken any basic technical requirements.</p>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-green-700 mb-2">What it checks (basic pass/fail)</h4>
+              <ul class="space-y-1.5 text-sm text-gray-700">
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a &lt;title&gt; tag (doesn't check length or quality)</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a meta description (doesn't check typos or length)</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a canonical URL</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Not blocked by robots.txt</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Has a viewport meta tag</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Images have alt attributes (even empty ones pass)</li>
+                <li class="flex items-start"><span class="text-green-500 mr-2 mt-0.5">&#10003;</span> Structured data syntax is valid (doesn't check completeness)</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 class="text-sm font-semibold text-red-700 mb-2">What it does NOT check (the stuff that matters)</h4>
+              <ul class="space-y-1.5 text-sm text-gray-700">
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content quality, word count, or whether content even exists</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> E-E-A-T signals (author credentials, medical disclaimers)</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Keyword targeting or title/description optimization</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Schema completeness (missing Quiz, Person, MedicalWebPage)</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> YMYL compliance for health content</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Internal linking strategy or backlinks</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Actual search rankings or visibility</li>
+                <li class="flex items-start"><span class="text-red-500 mr-2 mt-0.5">&#10007;</span> Content freshness (this page hasn't been updated since 2022)</li>
+              </ul>
+            </div>
+
+            <div class="p-4 bg-gray-100 rounded-lg">
+              <p class="text-sm text-gray-800"><strong>This page scores 100 despite:</strong> zero editorial content, a typo in the meta description, a title tag that's 27 characters too long, no author attribution, no medical disclaimer, and missing schema types. The real SEO issues are in the report above — not in this score.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- CWV table -->
@@ -589,7 +651,123 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
     </div>
   </div>
 
+  <!-- ============================================ -->
+  <!-- ADMIN ONLY: TECH STACK & INTERNAL NOTES -->
+  <!-- ============================================ -->
+  <div id="admin-section" class="hidden">
+    <div class="bg-slate-800 rounded-lg shadow-sm mb-8 text-white">
+      <div class="px-6 py-4 border-b border-slate-700 flex items-center gap-2">
+        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+        <h3 class="text-lg font-semibold">Admin View</h3>
+        <span class="text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full ml-auto">?user=admin</span>
+      </div>
+      <div class="p-6 space-y-6">
+        {techStack && (
+          <div>
+            <h4 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Detected Tech Stack</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">CMS</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.cms}</p>
+              </div>
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">Page Builder</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.builder}</p>
+              </div>
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">SEO Plugin</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.seoPlugin}</p>
+              </div>
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">Caching</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.caching}</p>
+              </div>
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">CDN</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.cdn}</p>
+              </div>
+              <div class="bg-slate-700/50 rounded-lg p-3">
+                <span class="text-xs text-slate-400">Forms</span>
+                <p class="text-sm font-medium text-slate-200">{techStack.forms}</p>
+              </div>
+            </div>
+
+            {techStack.analytics && (
+              <div class="mt-3">
+                <span class="text-xs text-slate-400">Analytics / Tracking ({techStack.analytics.length})</span>
+                <div class="flex flex-wrap gap-2 mt-1.5">
+                  {techStack.analytics.map(a => (
+                    <span class="text-xs bg-slate-700 text-slate-300 px-2 py-1 rounded font-mono">{a}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {techStack.renderBlocking && (
+              <div class="mt-3">
+                <span class="text-xs text-red-400">Render-Blocking Resources</span>
+                <div class="space-y-1 mt-1.5">
+                  {techStack.renderBlocking.map(r => (
+                    <div class="flex items-center text-xs text-red-300">
+                      <span class="w-1.5 h-1.5 bg-red-400 rounded-full mr-2 flex-shrink-0"></span>
+                      {r}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {techStack.note && (
+              <p class="mt-3 text-xs text-amber-300 italic">{techStack.note}</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+
   <div class="text-center py-4">
     <a href="/cs/" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to Dashboard</a>
   </div>
+
+  <script>
+    // Modal open/close
+    document.querySelectorAll('[data-open-modal]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-open-modal');
+        document.getElementById(id)?.classList.remove('hidden');
+      });
+    });
+    document.querySelectorAll('[data-close-modal]').forEach(el => {
+      el.addEventListener('click', () => {
+        el.closest('.fixed')?.classList.add('hidden');
+      });
+    });
+    // Close modal on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.fixed:not(.hidden)').forEach(m => m.classList.add('hidden'));
+      }
+    });
+
+    // Admin mode: ?user=admin
+    if (new URLSearchParams(window.location.search).get('user') === 'admin') {
+      const adminSection = document.getElementById('admin-section');
+      if (adminSection) adminSection.classList.remove('hidden');
+    }
+
+    // Collapsible sections
+    document.querySelectorAll('[data-toggle]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = document.getElementById(btn.getAttribute('data-toggle'));
+        if (target) {
+          target.classList.toggle('hidden');
+          const arrow = btn.querySelector('.toggle-arrow');
+          if (arrow) arrow.classList.toggle('rotate-180');
+        }
+      });
+    });
+  </script>
 </Layout>
