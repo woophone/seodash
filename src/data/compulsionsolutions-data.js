@@ -256,6 +256,27 @@ export const clientData = {
     ]
   },
 
+  considerations: [
+    {
+      id: "published-book",
+      severity: "HIGH",
+      category: "Untapped Authority",
+      title: "Published book with ~800 Amazon reviews — not mentioned anywhere on site",
+      finding: "George Collins, founder of Compulsion Solutions, authored \"Breaking the Cycle: Free Yourself from Sex Addiction, Porn Obsession, and Shame\" (New Harbinger Publications). The book has approximately 800 reviews on Amazon with a 4.5+ star rating and is available as a free Kindle download. It is also available on Audible, Barnes & Noble, and Google Books. Despite this, the book is not referenced on any page of compulsionsolutions.com — not on the assessment pages, not in author bios, not in the site footer.",
+      whyItMatters: "Google's E-E-A-T guidelines (Experience, Expertise, Authoritativeness, Trustworthiness) are the primary quality signal for YMYL health content. A published book with hundreds of verified reviews is the single strongest form of author authority that exists — it proves expertise in a way no certification badge or disclaimer can. Google's Search Quality Rater Guidelines specifically cite \"published works\" and \"external reputation\" as top-tier authority evidence. This is not a nice-to-have — for YMYL health content, this is the highest-value trust signal available, and it's currently invisible to both Google and site visitors.",
+      competitiveAngle: "None of the competitors currently outranking Compulsion Solutions have a published book. SagebrushCounseling beats them with basic YMYL compliance (therapist byline + disclaimers). WikiHow wins on brand recognition alone. Neither can match a published author with hundreds of reviews in this exact subject matter. This is the single biggest competitive differentiator available — and it already exists. It just needs to be visible.",
+      source: {
+        type: "Amazon",
+        url: "https://www.amazon.com/Breaking-Cycle-Yourself-Addiction-Obsession-ebook/dp/B005JT6ZYW",
+        title: "Breaking the Cycle: Free Yourself from Sex Addiction, Porn Obsession, and Shame",
+        author: "George Collins, MA",
+        publisher: "New Harbinger Publications",
+        reviewCount: "~800",
+        rating: "4.5+"
+      }
+    }
+  ],
+
   projections: {
     timeline: [
       {
