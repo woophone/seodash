@@ -83,6 +83,29 @@ Git push to `main` on `github.com/woophone/seodash` triggers Coolify auto-deploy
 - Auth token in env: `COOLIFY_API_TOKEN`
 - Or use: `curl -s -X POST "http://localhost:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" -H "Content-Type: application/json"`
 
+## Per-Page Report Workflow (PROJECT RULE)
+For every page report, ALWAYS follow this two-layer process:
+
+### Layer 1: claude-seo skill audit
+Run `/seo page` (or `seo-page` skill) on the live HTML first. This provides:
+- Standardized on-page SEO scoring
+- Content quality assessment
+- Schema detection and validation with ready-to-use JSON-LD
+- Image audit
+- Technical meta tag analysis
+- GEO (AI search readiness) assessment
+
+### Layer 2: GSC data overlay (YOU own this)
+Layer GSC API data on top of the skill output. This is what makes our reports unique:
+- Real keyword data (queries, clicks, impressions, CTR, position)
+- Time series trends (impression/click history)
+- SERP feature landscape (from Semrush where available)
+- Content area vs template distinction (apply page-audit-framework.md)
+- Narrative framing (strength-first, opportunity-focused)
+
+### The final report is OURS
+The claude-seo skill provides a starting checklist. The GSC data, SERP context, content area scoping, and client narrative are what make the report actionable. Always cross-validate skill findings against our framework in `memory/page-audit-framework.md`.
+
 ## Key Decisions
 - Stripped Semrush data, competitor battle cards — chaotic, unverified
 - On-page issues belong in per-page reports, NOT on main dashboard

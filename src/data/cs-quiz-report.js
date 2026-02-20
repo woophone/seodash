@@ -1,6 +1,6 @@
 // Per-page report: Compulsion Solutions — Hypersexuality Quiz
-// Data sources: GSC API, Lighthouse CLI, Wayback Machine archive, Semrush SERP data
-// Generated: 2026-02-20
+// Data sources: GSC API, Lighthouse CLI, Live HTML (2026-02-20), Semrush SERP data
+// Generated: 2026-02-20, updated with live HTML analysis
 
 export const quizReport = {
   page: {
@@ -8,7 +8,7 @@ export const quizReport = {
     title: "Hypersexuality Quiz",
     fullTitle: "Sex and Porn Addiction Quizzes",
     analysisDate: "2026-02-20",
-    archiveSource: "Wayback Machine (May 2024)"
+    archiveSource: "Live HTML (Feb 2026) — confirmed identical content area to Wayback May 2024"
   },
 
   // What's working — lead with strength
@@ -236,7 +236,24 @@ export const quizReport = {
       types: ["WebPage", "BreadcrumbList", "WebSite"],
       datePublished: "2020-01-04",
       dateModified: "2022-04-26",
-      missing: ["Person", "Book", "MedicalWebPage", "Quiz", "Organization"]
+      missing: ["Person", "Book", "MedicalWebPage", "Quiz", "Organization"],
+      issues: [
+        "WebPage description contains typo 'hypersexualtiy'",
+        "dateModified 2022-04-26 signals staleness to quality systems",
+        "BreadcrumbList says 'Quizzes' (correct) while URL says 'quizes' (misspelled)",
+        "og:type is 'article' — should be 'website' for a quiz landing page"
+      ]
+    },
+    techStack: {
+      cms: "WordPress 6.9.1",
+      builder: "Oxygen 4.9.1",
+      seoPlugin: "Yoast SEO 27.0",
+      caching: "WP Rocket 3.20.4",
+      cdn: "Cloudflare (with Zaraz analytics)",
+      forms: "Gravity Forms 2.9.28",
+      analytics: ["GTM (GTM-KJ3DQG4)", "Hotjar (806084)", "ActiveCampaign", "Facebook Pixel", "Bing UET"],
+      renderBlocking: ["jQuery 3.7.1 (synchronous in head)", "4 Oxygen CSS files", "3 Gravity Forms CSS files"],
+      note: "7+ third-party scripts on a page with zero content"
     }
   },
 
@@ -261,6 +278,12 @@ export const quizReport = {
       recommendation: "Add 'By George Collins, MA — Author of Breaking the Cycle' with a link to a dedicated author page. For YMYL health content, visible expert authorship is a ranking signal."
     },
     {
+      severity: "critical",
+      category: "Freshness",
+      issue: "Page last modified April 2022 — nearly 4 years stale",
+      recommendation: "Update the page content and dateModified. For YMYL health content, Google's quality systems penalize stale pages. Even minor content updates reset the freshness signal."
+    },
+    {
       severity: "high",
       category: "Meta",
       issue: "Title tag is 87 characters — truncated in Google results at ~60",
@@ -280,10 +303,16 @@ export const quizReport = {
       recommendation: "Server-side caching or hosting optimization. This affects all pages, not just this one."
     },
     {
+      severity: "high",
+      category: "Social",
+      issue: "No og:image but twitter:card is 'summary_large_image' — social shares display broken/empty",
+      recommendation: "Add og:image and twitter:image meta tags. The twitter:card type 'summary_large_image' specifically requires an image. Use a branded quiz graphic or book cover."
+    },
+    {
       severity: "medium",
-      category: "Schema",
-      issue: "No og:image — social shares have no preview image",
-      recommendation: "Add an og:image meta tag (branded quiz graphic or book cover)."
+      category: "CLS",
+      issue: "All 3 images missing width/height attributes — causes layout shift",
+      recommendation: "Add explicit width and height attributes to all img tags. The book image (booklarge2.png) has fetchpriority='high' but no dimensions, which is contradictory — high priority image should be fully optimized."
     },
     {
       severity: "low",
@@ -300,7 +329,7 @@ export const quizReport = {
   ],
 
   adequacyAssessment: {
-    whatWeHave: "GSC keyword data (47 queries), Semrush SERP feature landscape (top 3 keywords), daily time series showing the impression crash, Lighthouse scores (mobile + desktop), content area audit from Wayback archive (correctly scoped to CMS content only), meta tag analysis, schema inspection.",
+    whatWeHave: "GSC keyword data (47 queries), Semrush SERP feature landscape (top 3 keywords), daily time series showing the impression crash, Lighthouse scores (mobile + desktop), content area audit from live HTML (Feb 2026, confirmed identical to Wayback May 2024), meta tag analysis, schema inspection, claude-seo cross-validation audit.",
     whatsMissing: [
       "Inbound internal links — which pages on the site link TO this quiz page within their content? This is the most important internal linking metric for a page driving 34% of site traffic, and we haven't measured it. Requires a site crawl.",
       "Competitor content comparison — what do the pages ranking positions 1-5 look like? How much content do they have? What schema? (Blocked by Cloudflare from Hetzner — need residential proxy.)",
