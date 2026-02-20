@@ -25,7 +25,7 @@ const processedPages = pages.map((page, i) => ({
   index: i,
   posColor: posColor(page.position),
   clickQueries: page.queries.filter(q => q.clicks >= 1),
-  impressionOnlyQueries: page.queries.filter(q => q.clicks === 0 && q.impressions >= 5),
+  impressionOnlyQueries: page.queries.filter(q => q.clicks === 0),
 }));
 
 const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
