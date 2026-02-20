@@ -2,7 +2,10 @@
 import Layout from '../layouts/Layout.astro';
 import { clientData } from '../data/compulsionsolutions-data.js';
 
-const { client, overview, performance, keywords, technicalIssues, considerations, actionPlan, projections } = clientData;
+const { client, overview, pages, siteWideIssues, considerations, actionPlan } = clientData;
+
+const page1Pages = pages.filter(p => p.status === 'page-1' || p.status === 'page-1-edge');
+const page2Pages = pages.filter(p => p.status === 'page-2');
 ---
 
 <Layout title={`${client.name} - SEO Dashboard`}>
@@ -34,364 +37,190 @@ const { client, overview, performance, keywords, technicalIssues, considerations
   <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
     <div class="flex justify-between items-start">
       <div>
-        <div class="flex items-center space-x-3 mb-2">
-          <h2 class="text-3xl font-bold text-gray-900">{client.name}</h2>
-          <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">Client Code: CS</span>
-        </div>
+        <h2 class="text-3xl font-bold text-gray-900">{client.name}</h2>
         <p class="text-lg text-gray-600 mt-1">{client.domain}</p>
-        <div class="flex items-center mt-2 space-x-4">
-          <span class="text-sm text-gray-500">Industry: {client.industry}</span>
-          <span class="text-sm text-gray-500">Analysis: {client.analysisDate}</span>
-        </div>
+        <p class="text-sm text-gray-500 mt-2">{client.industry}</p>
       </div>
       <div class="text-right">
-        <div class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${overview.statusColor === 'red' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-          <span class="w-2 h-2 rounded-full mr-2 bg-current"></span>
-          {overview.status}
-        </div>
-        <p class="text-sm text-gray-600 mt-2">Target Page: {client.targetPage}</p>
+        <p class="text-xs text-gray-400">{client.dataSource}</p>
+        <p class="text-xs text-gray-400 mt-1">Analysis: {client.analysisDate}</p>
       </div>
     </div>
   </div>
 
-  <!-- Critical Alert -->
-  <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
-    <div class="flex items-start">
-      <div class="flex-shrink-0">
-        <svg class="w-5 h-5 text-red-400 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+  <!-- Key Metrics -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <p class="text-sm text-gray-500">Clicks (28 days)</p>
+      <p class="text-2xl font-bold text-gray-900">{overview.totalClicks.toLocaleString()}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <p class="text-sm text-gray-500">Impressions</p>
+      <p class="text-2xl font-bold text-gray-900">{overview.totalImpressions.toLocaleString()}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <p class="text-sm text-gray-500">Pages on Page 1</p>
+      <p class="text-2xl font-bold text-green-600">{overview.pagesOnPage1}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <p class="text-sm text-gray-500">Pages on Page 2</p>
+      <p class="text-2xl font-bold text-orange-600">{overview.pagesOnPage2}</p>
+      <p class="text-xs text-orange-500 mt-1">Can be moved to page 1</p>
+    </div>
+  </div>
+
+  <!-- Crash Note -->
+  {overview.crashNote && (
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-amber-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
         </svg>
-      </div>
-      <div class="ml-3">
-        <h3 class="text-sm font-medium text-red-800">Traffic Emergency</h3>
-        <p class="text-sm text-red-700 mt-1">
-          <strong>{overview.trafficDecline} traffic decline</strong> over {overview.declineTimeline}.
-          Main cause: <strong>{overview.mainIssue}</strong> starting {overview.crashDate}.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Key Metrics Grid -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-gray-600">Current Monthly Clicks</p>
-          <p class="text-3xl font-bold text-gray-900">{performance.current28Days.clicks}</p>
-        </div>
-        <div class="text-red-600">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-          </svg>
-        </div>
-      </div>
-      <p class="text-sm text-red-600 mt-1">{overview.trafficDecline} from peak</p>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-gray-600">Recovery Potential</p>
-          <p class="text-3xl font-bold text-green-600">+{overview.potentialMonthlyClicks - overview.currentMonthlyClicks}</p>
-        </div>
-        <div class="text-green-600">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path>
-          </svg>
-        </div>
-      </div>
-      <p class="text-sm text-green-600 mt-1">Monthly clicks with optimization</p>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-gray-600">Average Position</p>
-          <p class="text-3xl font-bold text-gray-900">{performance.current28Days.avgPosition}</p>
-        </div>
-        <div class="text-orange-600">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-          </svg>
-        </div>
-      </div>
-      <p class="text-sm text-orange-600 mt-1">Target: Top 3 positions</p>
-    </div>
-
-    <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium text-gray-600">Keywords Tracked</p>
-          <p class="text-3xl font-bold text-gray-900">{performance.current28Days.uniqueKeywords}</p>
-        </div>
-        <div class="text-blue-600">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-          </svg>
-        </div>
-      </div>
-      <p class="text-sm text-blue-600 mt-1">Multiple opportunities identified</p>
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- KEYWORD BATTLES -->
-  <!-- ============================================ -->
-  <div class="mb-8">
-    <div class="px-1 mb-6">
-      <h3 class="text-2xl font-semibold text-gray-900">Keyword Battles</h3>
-      <p class="text-sm text-gray-600 mt-1">Each keyword you're competing for — who's beating you, why, and what we'll fix</p>
-    </div>
-
-    <div class="space-y-4">
-      {keywords.primary.map((kw, index) => (
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <!-- Collapsed Header (always visible) -->
-          <button
-            data-toggle={`battle-${index}`}
-            class="w-full text-left px-6 py-5 hover:bg-gray-50 transition-colors"
-          >
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-4 flex-1 min-w-0">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center space-x-3 flex-wrap">
-                    <h4 class="text-lg font-semibold text-gray-900">"{kw.keyword}"</h4>
-                    <span class="text-sm text-gray-500">{kw.volume.toLocaleString()} searches/mo</span>
-                    <span class={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${kw.status === 'MAJOR DROP' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                      {kw.status}
-                    </span>
-                  </div>
-                  <div class="flex items-center space-x-4 mt-2 text-sm">
-                    <span class="text-gray-600">
-                      Position: <span class="text-green-600 font-medium">#{kw.previousPosition}</span>
-                      <span class="text-gray-400 mx-1">&rarr;</span>
-                      <span class="text-red-600 font-medium">#{kw.currentPosition}</span>
-                    </span>
-                    <span class="text-red-600 font-medium">-{kw.lostClicks} clicks/mo lost</span>
-                    <span class="text-gray-500">
-                      Beating you: {kw.competitors.map(c => c.domain).join(', ')}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div class="flex items-center space-x-2 ml-4">
-                <span class="text-sm text-blue-600 font-medium">See Battle</span>
-                <svg class="w-5 h-5 text-blue-600 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </div>
-            </div>
-          </button>
-
-          <!-- Expanded Battle Details (hidden by default) -->
-          <div id={`battle-${index}`} class="hidden border-t border-gray-200">
-            <div class="px-6 py-6">
-
-              <!-- YOUR PAGE -->
-              <div class="mb-6">
-                <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Your Page</h5>
-                <div class="bg-gray-50 rounded-lg p-4">
-                  <p class="text-sm text-gray-700 font-medium mb-3">
-                    {client.domain}{kw.yourPage.url}
-                  </p>
-                  <div class="flex flex-wrap gap-2">
-                    {kw.yourPage.signals.map(signal => (
-                      <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${signal.present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {signal.present ? (
-                          <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                          </svg>
-                        ) : (
-                          <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                          </svg>
-                        )}
-                        {signal.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <!-- VS DIVIDER -->
-              <div class="flex items-center mb-6">
-                <div class="flex-1 border-t border-gray-300"></div>
-                <span class="px-4 text-sm font-bold text-gray-400 uppercase">vs</span>
-                <div class="flex-1 border-t border-gray-300"></div>
-              </div>
-
-              <!-- COMPETITORS -->
-              <div class="space-y-4 mb-6">
-                {kw.competitors.map(comp => (
-                  <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex items-start justify-between mb-3">
-                      <div>
-                        <div class="flex items-center space-x-3">
-                          <span class={`inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold text-white ${comp.position <= 3 ? 'bg-orange-500' : 'bg-gray-400'}`}>
-                            #{comp.position}
-                          </span>
-                          <h6 class="font-semibold text-gray-900">{comp.domain}</h6>
-                          <span class="text-sm text-gray-500">{comp.traffic.toLocaleString()} clicks/mo</span>
-                        </div>
-                        <a
-                          href={comp.pageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="text-sm text-blue-600 hover:text-blue-800 hover:underline mt-1 inline-block"
-                        >
-                          {comp.pageUrl} &nearr;
-                        </a>
-                      </div>
-                    </div>
-                    <div class="flex flex-wrap gap-2 mb-3">
-                      {comp.signals.map(signal => (
-                        <span class={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${signal.present ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {signal.present ? (
-                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                            </svg>
-                          ) : (
-                            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
-                            </svg>
-                          )}
-                          {signal.label}
-                        </span>
-                      ))}
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <span class="font-medium text-gray-900">Their edge: </span>
-                        <span class="text-gray-700">{comp.edge}</span>
-                      </div>
-                      <div>
-                        <span class="font-medium text-gray-900">Their weakness: </span>
-                        <span class="text-gray-700">{comp.weakness}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <!-- FIX SUMMARY -->
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div class="flex items-center justify-between flex-wrap gap-2">
-                  <div class="flex items-center space-x-2">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    <span class="text-sm font-semibold text-blue-900">What we'll fix:</span>
-                    <span class="text-sm text-blue-800">{kw.fix.summary}</span>
-                  </div>
-                  <div class="flex items-center space-x-4 text-sm">
-                    <span class="text-blue-700">Target: <strong>#{kw.fix.targetPosition}</strong></span>
-                    <span class="text-green-700 font-semibold">{kw.fix.expectedClickGain}</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- KEYWORD OPPORTUNITIES -->
-  <!-- ============================================ -->
-  {keywords.opportunities.length > 0 && (
-    <div class="bg-white rounded-lg shadow-sm mb-8">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-900">Untapped Keyword Opportunities</h3>
-        <p class="text-sm text-gray-600">Keywords with low competition where you can win new traffic</p>
-      </div>
-      <div class="p-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {keywords.opportunities.map(opp => (
-            <div class="border border-green-200 bg-green-50 rounded-lg p-4">
-              <h4 class="font-semibold text-gray-900 mb-1">"{opp.keyword}"</h4>
-              <div class="space-y-1 text-sm">
-                <p class="text-gray-600">{opp.volume} searches/mo</p>
-                <p class="text-gray-600">Difficulty: <span class="font-medium">{opp.difficulty}</span></p>
-                <p class="text-green-700 font-medium">{opp.opportunity}</p>
-                <p class="text-green-800 font-semibold">+{opp.potentialClicks} clicks/mo potential</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p class="text-sm text-amber-800">{overview.crashNote}</p>
       </div>
     </div>
   )}
 
   <!-- ============================================ -->
-  <!-- SITE HEALTH -->
+  <!-- PAGE RANKINGS -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Site Health Issues</h3>
-      <p class="text-sm text-gray-600">Page-wide problems impacting your rankings</p>
+      <h3 class="text-lg font-semibold text-gray-900">Your Rankings</h3>
+      <p class="text-sm text-gray-600">Pages currently ranking on Google, sorted by traffic</p>
+    </div>
+
+    <!-- Page 1 Rankings -->
+    <div class="px-6 pt-4 pb-2">
+      <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider flex items-center">
+        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+        Google Page 1 ({page1Pages.length} pages)
+      </h4>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <th class="px-6 py-3 text-left">Page</th>
+            <th class="px-4 py-3 text-right">Position</th>
+            <th class="px-4 py-3 text-right">Clicks</th>
+            <th class="px-4 py-3 text-right">Impressions</th>
+            <th class="px-4 py-3 text-right">CTR</th>
+            <th class="px-6 py-3 text-left">Note</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {page1Pages.map(page => (
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-3">
+                <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
+                <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${page.position <= 5 ? 'bg-green-100 text-green-800' : page.status === 'page-1-edge' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
+                  #{page.position.toFixed(1)}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
+              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
+              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
+              <td class="px-6 py-3 text-xs text-gray-500 max-w-xs">{page.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Page 2 Rankings -->
+    <div class="px-6 pt-6 pb-2 border-t border-gray-200">
+      <h4 class="text-sm font-semibold text-orange-700 uppercase tracking-wider flex items-center">
+        <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+        Google Page 2 — push these to page 1 ({page2Pages.length} pages)
+      </h4>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <th class="px-6 py-3 text-left">Page</th>
+            <th class="px-4 py-3 text-right">Position</th>
+            <th class="px-4 py-3 text-right">Clicks</th>
+            <th class="px-4 py-3 text-right">Impressions</th>
+            <th class="px-4 py-3 text-right">CTR</th>
+            <th class="px-6 py-3 text-left">Note</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {page2Pages.map(page => (
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-3">
+                <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
+                <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-800">
+                  #{page.position.toFixed(1)}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
+              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
+              <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
+              <td class="px-6 py-3 text-xs text-gray-500 max-w-xs">{page.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+      <p class="text-xs text-gray-500">All position and traffic data from Google Search Console. Competitor data excluded — this shows only your verified performance.</p>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SITE-WIDE ISSUES -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">What's Holding You Back</h3>
+      <p class="text-sm text-gray-600">Issues affecting your rankings across all {pages.length} tracked pages</p>
     </div>
     <div class="p-6">
-      <!-- YMYL Issues -->
+      <!-- Critical YMYL Issues -->
       <div class="mb-6">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="font-semibold text-gray-900 flex items-center">
-            <span class="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
-            YMYL Compliance Issues
-          </h4>
-          <span class="text-sm text-red-600 font-medium">{technicalIssues.ymyl.severity}</span>
-        </div>
-        <p class="text-sm text-gray-600 mb-3">{technicalIssues.ymyl.impact}</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {technicalIssues.ymyl.issues.map((issue) => (
-            <div class="flex items-start p-3 bg-red-50 border border-red-200 rounded">
-              <svg class="w-4 h-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <h4 class="text-sm font-semibold text-red-700 uppercase tracking-wider mb-3 flex items-center">
+          <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+          YMYL Trust Signals (Critical)
+        </h4>
+        <div class="space-y-2">
+          {siteWideIssues.critical.map(item => (
+            <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
+              <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
               </svg>
-              <span class="text-sm text-red-800">{issue}</span>
+              <div class="flex-1">
+                <p class="text-sm text-red-900">{item.issue}</p>
+                <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       <!-- On-Page Issues -->
-      <div class="mb-6">
-        <div class="flex items-center justify-between mb-3">
-          <h4 class="font-semibold text-gray-900 flex items-center">
-            <span class="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
-            On-Page Issues
-          </h4>
-          <span class="text-sm text-orange-600 font-medium">{technicalIssues.onPage.severity}</span>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {technicalIssues.onPage.issues.map((issue) => (
-            <div class="flex items-start p-3 bg-orange-50 border border-orange-200 rounded">
-              <svg class="w-4 h-4 text-orange-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <div>
+        <h4 class="text-sm font-semibold text-orange-700 uppercase tracking-wider mb-3 flex items-center">
+          <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+          On-Page Issues (Quick Fixes)
+        </h4>
+        <div class="space-y-2">
+          {siteWideIssues.onPage.map(item => (
+            <div class="flex items-start p-3 bg-orange-50 border border-orange-100 rounded-lg">
+              <svg class="w-4 h-4 text-orange-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
               </svg>
-              <span class="text-sm text-orange-800">{issue}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <!-- Quick Wins -->
-      <div>
-        <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
-          <span class="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-          Quick Wins (High Impact, Low Effort)
-        </h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {technicalIssues.onPage.quickWins.map((win) => (
-            <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h5 class="font-medium text-green-900">{win.task}</h5>
-              <div class="flex justify-between items-center mt-2">
-                <span class="text-sm text-green-700">Time: {win.time}</span>
-                <span class={`text-xs px-2 py-1 rounded-full ${win.impact === 'HIGH' ? 'bg-green-200 text-green-800' : 'bg-yellow-200 text-yellow-800'}`}>
-                  {win.impact} Impact
-                </span>
+              <div class="flex-1">
+                <p class="text-sm text-orange-900">{item.issue}</p>
+                <p class="text-xs text-orange-600 mt-0.5">Affects: {item.applies}</p>
               </div>
             </div>
           ))}
@@ -407,7 +236,7 @@ const { client, overview, performance, keywords, technicalIssues, considerations
     <div class="mb-8">
       <div class="px-1 mb-6">
         <h3 class="text-2xl font-semibold text-gray-900">Considerations</h3>
-        <p class="text-sm text-gray-600 mt-1">Strategic findings and observations from our analysis</p>
+        <p class="text-sm text-gray-600 mt-1">Strategic findings from our analysis</p>
       </div>
 
       <div class="space-y-4">
@@ -488,7 +317,7 @@ const { client, overview, performance, keywords, technicalIssues, considerations
                 <!-- External Platforms (for entity considerations) -->
                 {note.platforms && note.platforms.length > 0 && (
                   <div>
-                    <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">External Platforms (sameAs targets)</h5>
+                    <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">External Profiles (sameAs targets)</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {note.platforms.map(platform => (
                         <a href={platform.url} target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
@@ -548,19 +377,17 @@ const { client, overview, performance, keywords, technicalIssues, considerations
   )}
 
   <!-- ============================================ -->
-  <!-- RECOVERY PLAN (simplified for sales audit) -->
+  <!-- ACTION PLAN -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Recovery Plan</h3>
-      <p class="text-sm text-gray-600">Our phased approach to restore and exceed your previous performance</p>
+      <h3 class="text-lg font-semibold text-gray-900">Action Plan</h3>
+      <p class="text-sm text-gray-600">{actionPlan.summary}</p>
     </div>
     <div class="p-6">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Phases -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {actionPlan.phases.map(phase => (
-          <div class="border border-gray-200 rounded-lg p-5">
+          <div class={`border rounded-lg p-5 ${phase.priority === 'CRITICAL' ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
             <div class="flex items-center space-x-3 mb-3">
               <div class={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
                 {phase.phase}
@@ -570,44 +397,12 @@ const { client, overview, performance, keywords, technicalIssues, considerations
                 <p class="text-sm text-gray-500">{phase.timeline}</p>
               </div>
             </div>
-            <div class="flex items-center justify-between">
-              <span class={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${phase.priority === 'CRITICAL' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
-                {phase.priority}
-              </span>
-              <span class="text-sm text-gray-600">{phase.taskCount} action items</span>
+            <p class="text-sm text-gray-700 mb-3">{phase.description}</p>
+            <div class={`text-sm font-medium ${phase.priority === 'CRITICAL' ? 'text-red-800' : 'text-blue-800'}`}>
+              {phase.expectedImpact}
             </div>
-            <p class="text-sm text-green-700 font-medium mt-3">{phase.expectedImpact}</p>
           </div>
         ))}
-
-        <!-- Projections -->
-        <div class="border border-green-200 bg-green-50 rounded-lg p-5">
-          <h4 class="font-semibold text-gray-900 mb-4">Projected Results</h4>
-          <div class="space-y-4">
-            {projections.timeline.map(proj => (
-              <div class="flex items-center justify-between">
-                <div>
-                  <p class="text-sm font-medium text-gray-900">Week {proj.week}</p>
-                  <p class="text-xs text-gray-600">{proj.status}</p>
-                </div>
-                <div class="text-right">
-                  <p class="text-lg font-bold text-green-700">{proj.expectedClicks.toLocaleString()}</p>
-                  <p class="text-xs text-gray-500">clicks/mo</p>
-                </div>
-              </div>
-            ))}
-            <div class="border-t border-green-300 pt-3 mt-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-900">Current</span>
-                <span class="text-lg font-bold text-red-600">{performance.current28Days.clicks}</span>
-              </div>
-              <p class="text-xs text-green-700 font-medium mt-1">
-                +{Math.round(((projections.timeline[projections.timeline.length - 1].expectedClicks - performance.current28Days.clicks) / performance.current28Days.clicks) * 100)}% projected growth
-              </p>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
