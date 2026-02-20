@@ -7,7 +7,7 @@ export const clientData = {
     primaryContact: "Ginger",
     targetPage: "/sex-and-porn-addiction-quizes/"
   },
-  
+
   overview: {
     status: "URGENT",
     statusColor: "red",
@@ -50,20 +50,90 @@ export const clientData = {
         previousPosition: "1-2",
         currentClicks: 57,
         lostClicks: 45,
-        ctr: 2.8,
-        priority: "HIGH",
-        status: "MAJOR DROP"
+        status: "MAJOR DROP",
+        yourPage: {
+          url: "/sex-and-porn-addiction-quizes/",
+          signals: [
+            { label: "Medical disclaimer", present: false },
+            { label: "Author credentials (LMFT, CSAT)", present: false },
+            { label: "Research citations", present: false },
+            { label: "Content updated recently", present: false },
+            { label: "'Seek professional help' warning", present: false }
+          ]
+        },
+        competitors: [
+          {
+            domain: "wikihow.com",
+            position: 1,
+            pageUrl: "https://www.wikihow.com/Know-if-You-Are-Hypersexual",
+            traffic: 1017,
+            signals: [
+              { label: "Brand authority", present: true },
+              { label: "Structured step-by-step content", present: true },
+              { label: "Professional credentials", present: false },
+              { label: "Specialist focus", present: false }
+            ],
+            edge: "Massive brand trust — Google defaults to recognizable domains",
+            weakness: "No medical authority. Generic content, not clinically valid."
+          },
+          {
+            domain: "sagebrushcounseling.com",
+            position: 2,
+            pageUrl: "https://sagebrushcounseling.com/hypersexual-quiz/",
+            traffic: 922,
+            signals: [
+              { label: "Licensed therapist byline", present: true },
+              { label: "Medical disclaimers", present: true },
+              { label: "Research citations", present: true },
+              { label: "Specialist focus", present: false }
+            ],
+            edge: "Full YMYL compliance — exactly what Google requires for health content",
+            weakness: "General counseling practice, not addiction specialist. Single quiz page with no depth."
+          }
+        ],
+        fix: {
+          summary: "YMYL compliance + credential display",
+          targetPosition: "2-3",
+          expectedClickGain: "+150-200/mo"
+        }
       },
       {
-        keyword: "hypersexual test", 
+        keyword: "hypersexual test",
         volume: 1000,
         currentPosition: 6,
         previousPosition: "1-2",
         currentClicks: 21,
         lostClicks: 20,
-        ctr: 1.9,
-        priority: "HIGH",
-        status: "MAJOR DROP"
+        status: "MAJOR DROP",
+        yourPage: {
+          url: "/sex-and-porn-addiction-quizes/",
+          signals: [
+            { label: "Medical disclaimer", present: false },
+            { label: "Author credentials (LMFT, CSAT)", present: false },
+            { label: "Research citations", present: false },
+            { label: "Content updated recently", present: false }
+          ]
+        },
+        competitors: [
+          {
+            domain: "sagebrushcounseling.com",
+            position: 1,
+            pageUrl: "https://sagebrushcounseling.com/hypersexual-quiz/",
+            traffic: 922,
+            signals: [
+              { label: "Licensed therapist byline", present: true },
+              { label: "Medical disclaimers", present: true },
+              { label: "Research citations", present: true }
+            ],
+            edge: "YMYL-compliant with licensed therapist credentials displayed prominently",
+            weakness: "General counseling practice — your addiction specialization is a stronger authority signal"
+          }
+        ],
+        fix: {
+          summary: "Same YMYL fixes — recovers alongside 'hypersexuality test'",
+          targetPosition: "2-3",
+          expectedClickGain: "+80-100/mo"
+        }
       },
       {
         keyword: "am i hypersexual quiz",
@@ -72,9 +142,36 @@ export const clientData = {
         previousPosition: "1-5",
         currentClicks: 15,
         lostClicks: 15,
-        ctr: 2.2,
-        priority: "HIGH",
-        status: "PAGE 2"
+        status: "PAGE 2",
+        yourPage: {
+          url: "/sex-and-porn-addiction-quizes/",
+          signals: [
+            { label: "Medical disclaimer", present: false },
+            { label: "Quiz-specific landing content", present: false },
+            { label: "Author credentials (LMFT, CSAT)", present: false },
+            { label: "FAQ schema markup", present: false }
+          ]
+        },
+        competitors: [
+          {
+            domain: "sagebrushcounseling.com",
+            position: 1,
+            pageUrl: "https://sagebrushcounseling.com/hypersexual-quiz/",
+            traffic: 922,
+            signals: [
+              { label: "Quiz-focused page title", present: true },
+              { label: "Licensed therapist byline", present: true },
+              { label: "Medical disclaimers", present: true }
+            ],
+            edge: "Page title directly matches 'quiz' search intent",
+            weakness: "Same single page for all quiz-related queries — no depth"
+          }
+        ],
+        fix: {
+          summary: "YMYL compliance + quiz-optimized content structure",
+          targetPosition: "3-5",
+          expectedClickGain: "+40-60/mo"
+        }
       }
     ],
     opportunities: [
@@ -105,41 +202,6 @@ export const clientData = {
     ]
   },
 
-  competitors: {
-    topThreats: [
-      {
-        domain: "sagebrushcounseling.com",
-        position: 2,
-        traffic: 922,
-        authority: 7,
-        strength: "Licensed therapy practice",
-        keywords: ["#1 hypersexual test", "#1 hypersexual quiz", "#2 hypersexuality test"],
-        weakness: "General counseling vs specialist",
-        threat: "HIGH"
-      },
-      {
-        domain: "psychology-tools.com", 
-        position: 8,
-        traffic: 889,
-        authority: 56,
-        strength: "Assessment platform specialist",
-        keywords: ["#2 teen hypersexuality tests", "#18 pornography quiz"],
-        weakness: "Clinical vs accessible",
-        threat: "MEDIUM"
-      },
-      {
-        domain: "wikihow.com",
-        position: 1,
-        traffic: 1017,
-        authority: 20,
-        strength: "Massive brand recognition",
-        keywords: ["#1 hypersexuality test"],
-        weakness: "No professional credentials",
-        threat: "MEDIUM"
-      }
-    ]
-  },
-
   technicalIssues: {
     ymyl: {
       status: "FAILING",
@@ -147,7 +209,7 @@ export const clientData = {
       issues: [
         "No medical disclaimer on assessment pages",
         "No visible author credentials (LMFT, CSAT, etc.)",
-        "Missing 'seek professional help' warnings", 
+        "Missing 'seek professional help' warnings",
         "No research citations for legitimacy",
         "Outdated content (last updated 2022)",
         "No treatment center authority signals"
@@ -156,7 +218,7 @@ export const clientData = {
     },
     onPage: {
       status: "NEEDS WORK",
-      severity: "MEDIUM", 
+      severity: "MEDIUM",
       issues: [
         "ALL 4 images missing alt text",
         "Meta description contains typo 'hypersexualtiy'",
@@ -180,48 +242,16 @@ export const clientData = {
         name: "YMYL Emergency Fixes",
         timeline: "Week 1-2",
         priority: "CRITICAL",
-        expectedImpact: "Position 6→3-4, +150-200 clicks",
-        tasks: [
-          {
-            task: "Add medical disclaimers",
-            description: "Professional medical disclaimer above all assessments",
-            time: "2 hours",
-            impact: "Addresses main YMYL failure"
-          },
-          {
-            task: "Display author credentials", 
-            description: "Licensed therapist byline with certifications",
-            time: "1 hour",
-            impact: "Establishes professional authority"
-          },
-          {
-            task: "Add research citations",
-            description: "Link to peer-reviewed studies and clinical tools", 
-            time: "3 hours",
-            impact: "Academic legitimacy for Google"
-          }
-        ]
+        expectedImpact: "Position 6 to 3-4, +150-200 clicks/mo",
+        taskCount: 3
       },
       {
         phase: 2,
         name: "Content Expansion",
-        timeline: "Week 3-4", 
+        timeline: "Week 3-4",
         priority: "HIGH",
         expectedImpact: "+100-150 clicks from new keywords",
-        tasks: [
-          {
-            task: "Create teen assessment page",
-            description: "/hypersexuality-test-teens/ targeting 70 monthly searches",
-            time: "6 hours",
-            impact: "Capture underserved market"
-          },
-          {
-            task: "Create ADHD assessment page",
-            description: "/adhd-hypersexuality-test/ - no competition",
-            time: "4 hours", 
-            impact: "Easy ranking win"
-          }
-        ]
+        taskCount: 2
       }
     ]
   },
@@ -243,7 +273,7 @@ export const clientData = {
       {
         week: 6,
         expectedClicks: 1000,
-        keywordPositions: "1-3 for main terms", 
+        keywordPositions: "1-3 for main terms",
         status: "Full optimization complete"
       }
     ]
