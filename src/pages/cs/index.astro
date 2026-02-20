@@ -1,28 +1,39 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import DashboardCard from '../../components/DashboardCard.astro';
-import DashboardModal from '../../components/DashboardModal.astro';
 import { clientData } from '../../data/compulsionsolutions-data.js';
 
-const { client, overview, pages, siteWideIssues, considerations, actionPlan, ymylEeat, adminChecklist } = clientData;
+const { client, overview, pages } = clientData;
 
-const page1Pages = pages.filter(p => p.status === 'page-1' || p.status === 'page-1-edge');
-const page2Pages = pages.filter(p => p.status === 'page-2');
+// Pre-process pages for template use (Astro JSX can't use < > in expressions)
+const page1Count = pages.filter(p => p.position <= 10.4).length;
+const page2Count = pages.filter(p => p.position > 10.4 && p.position <= 20).length;
 
-const totalChecklistItems = adminChecklist.groups.reduce((sum, g) => sum + g.items.length, 0);
+function posColor(pos) {
+  if (pos <= 10.4) return 'bg-green-100 text-green-800';
+  if (pos <= 20) return 'bg-orange-100 text-orange-800';
+  return 'bg-gray-100 text-gray-600';
+}
 
-// Icons (heroicons mini, 20x20)
-const iconRankings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>';
-const iconYmyl = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
-const iconIssues = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd"></path></svg>';
-const iconFindings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>';
-const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>';
-const iconChecklist = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
+function posTextColor(pos) {
+  if (pos <= 10) return 'text-green-700';
+  if (pos <= 20) return 'text-orange-600';
+  return 'text-gray-500';
+}
+
+const processedPages = pages.map((page, i) => ({
+  ...page,
+  index: i,
+  posColor: posColor(page.position),
+  clickQueries: page.queries.filter(q => q.clicks >= 1),
+  impressionOnlyQueries: page.queries.filter(q => q.clicks === 0 && q.impressions >= 5),
+}));
+
+const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
 ---
 
 <Layout title={`${client.name} - SEO Dashboard`}>
   <!-- Client Header -->
-  <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
     <div class="flex justify-between items-start">
       <div>
         <h2 class="text-3xl font-bold text-gray-900">{client.name}</h2>
@@ -37,9 +48,9 @@ const iconChecklist = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 
   </div>
 
   <!-- Key Metrics -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+  <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
     <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Clicks (28 days)</p>
+      <p class="text-sm text-gray-500">Clicks (28d)</p>
       <p class="text-2xl font-bold text-gray-900">{overview.totalClicks.toLocaleString()}</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm p-5">
@@ -47,19 +58,22 @@ const iconChecklist = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 
       <p class="text-2xl font-bold text-gray-900">{overview.totalImpressions.toLocaleString()}</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Pages on Page 1</p>
-      <p class="text-2xl font-bold text-green-600">{overview.pagesOnPage1}</p>
+      <p class="text-sm text-gray-500">CTR</p>
+      <p class="text-2xl font-bold text-gray-900">{overview.ctr}%</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Pages on Page 2</p>
-      <p class="text-2xl font-bold text-orange-600">{overview.pagesOnPage2}</p>
-      <p class="text-xs text-orange-500 mt-1">Can be moved to page 1</p>
+      <p class="text-sm text-gray-500">Avg Position</p>
+      <p class="text-2xl font-bold text-gray-900">{overview.avgPosition}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-5">
+      <p class="text-sm text-gray-500">Tracked Pages</p>
+      <p class="text-2xl font-bold text-gray-900">{overview.trackedPages}</p>
     </div>
   </div>
 
   <!-- Crash Note -->
   {overview.crashNote && (
-    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-8">
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
       <div class="flex items-start">
         <svg class="w-5 h-5 text-amber-500 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
@@ -69,484 +83,181 @@ const iconChecklist = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 
     </div>
   )}
 
-  <!-- ============================================ -->
-  <!-- CARD GRID -->
-  <!-- ============================================ -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-    <DashboardCard id="rankings" title="Your Rankings" icon={iconRankings} color="blue">
-      <p>{overview.pagesOnPage1} on page 1, {overview.pagesOnPage2} on page 2 — sorted by traffic</p>
-    </DashboardCard>
-
-    <DashboardCard id="ymyl-eeat" title="YMYL & E-E-A-T" icon={iconYmyl} color="purple" badge={`${ymylEeat.chain.filter(c => c.status === 'broken').length} broken links`}>
-      <p>Author authority chain is disconnected — {ymylEeat.signals.filter(s => s.status === 'missing').length} trust signals missing site-wide</p>
-    </DashboardCard>
-
-    <DashboardCard id="issues" title="What's Holding You Back" icon={iconIssues} color="red" badge={`${siteWideIssues.critical.length} critical`}>
-      <p>{siteWideIssues.critical.length} critical YMYL trust gaps affecting all pages</p>
-    </DashboardCard>
-
-    {considerations && considerations.length > 0 && (
-      <DashboardCard id="findings" title="Strategic Findings" icon={iconFindings} color="amber">
-        <p>{considerations.length} untapped authority opportunities</p>
-      </DashboardCard>
-    )}
-
-    <DashboardCard id="plan" title="Action Plan" icon={iconPlan} color="green">
-      <p>{actionPlan.phases.length}-phase roadmap — starting week 1</p>
-    </DashboardCard>
-
-    <DashboardCard id="checklist" title="Implementation Checklist" icon={iconChecklist} color="slate" adminOnly={true} badge={`${totalChecklistItems} tasks`}>
-      <p>{adminChecklist.groups[0].items.length} quick fixes, {adminChecklist.groups[1].items.length} template changes, {adminChecklist.groups[2].items.length} content tasks</p>
-    </DashboardCard>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- MODALS -->
-  <!-- ============================================ -->
-
-  <!-- Rankings Modal -->
-  <DashboardModal id="rankings" title="Your Rankings" subtitle="Pages currently ranking on Google, sorted by traffic">
-    <!-- Page 1 Rankings -->
-    <div class="mb-2">
-      <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider flex items-center">
-        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-        Google Page 1 ({page1Pages.length} pages)
-      </h4>
-    </div>
-    <div class="overflow-x-auto mb-6">
-      <table class="w-full">
-        <thead>
-          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-            <th class="px-4 py-3 text-left">Page</th>
-            <th class="px-3 py-3 text-right">Position</th>
-            <th class="px-3 py-3 text-left">Top Keyword</th>
-            <th class="px-3 py-3 text-right">Clicks</th>
-            <th class="px-3 py-3 text-right">Impressions</th>
-            <th class="px-3 py-3 text-right">CTR</th>
-            <th class="px-2 py-3 text-center">Report</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          {page1Pages.map(page => (
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3">
-                <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
-                <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
-              </td>
-              <td class="px-3 py-3 text-right">
-                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${page.position <= 5 ? 'bg-green-100 text-green-800' : page.status === 'page-1-edge' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}`}>
-                  #{page.position.toFixed(1)}
-                </span>
-              </td>
-              <td class="px-3 py-3">
-                {page.topKeyword ? (
-                  <div>
-                    <p class="text-xs text-gray-700">{page.topKeyword}</p>
-                    {page.topKeywordPosition && (
-                      <p class="text-xs text-gray-400">pos #{page.topKeywordPosition}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p class="text-xs text-gray-400 italic">Long-tail spread</p>
-                )}
-              </td>
-              <td class="px-3 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
-              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
-              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-2 py-3 text-center">
-                {page.reportSlug ? (
-                  <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
-                  </a>
-                ) : (
-                  <span class="inline-flex items-center text-gray-300" title="Report pending">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                    </svg>
-                  </span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <!-- Pages + Keywords Browser -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900">Pages & Keywords</h3>
+        <p class="text-xs text-gray-400">{page1Count} on page 1 &middot; {page2Count} on page 2 &middot; sorted by clicks</p>
+      </div>
     </div>
 
-    <!-- Page 2 Rankings -->
-    <div class="pt-4 mb-2 border-t border-gray-200">
-      <h4 class="text-sm font-semibold text-orange-700 uppercase tracking-wider flex items-center">
-        <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-        Google Page 2 — push these to page 1 ({page2Pages.length} pages)
-      </h4>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full">
-        <thead>
-          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
-            <th class="px-4 py-3 text-left">Page</th>
-            <th class="px-3 py-3 text-right">Position</th>
-            <th class="px-3 py-3 text-left">Top Keyword</th>
-            <th class="px-3 py-3 text-right">Clicks</th>
-            <th class="px-3 py-3 text-right">Impressions</th>
-            <th class="px-3 py-3 text-right">CTR</th>
-            <th class="px-2 py-3 text-center">Report</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          {page2Pages.map(page => (
-            <tr class="hover:bg-gray-50">
-              <td class="px-4 py-3">
-                <p class="text-sm font-medium text-gray-900">{page.shortName}</p>
-                <p class="text-xs text-gray-400 truncate max-w-xs">{page.url}</p>
-              </td>
-              <td class="px-3 py-3 text-right">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-800">
-                  #{page.position.toFixed(1)}
-                </span>
-              </td>
-              <td class="px-3 py-3">
-                {page.topKeyword ? (
-                  <div>
-                    <p class="text-xs text-gray-700">{page.topKeyword}</p>
-                    {page.topKeywordPosition && (
-                      <p class="text-xs text-gray-400">pos #{page.topKeywordPosition}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p class="text-xs text-gray-400 italic">Long-tail spread</p>
-                )}
-              </td>
-              <td class="px-3 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
-              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
-              <td class="px-3 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-2 py-3 text-center">
-                {page.reportSlug ? (
-                  <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
-                  </a>
-                ) : (
-                  <span class="inline-flex items-center text-gray-300" title="Report pending">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                    </svg>
-                  </span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <p class="text-xs text-gray-500 mt-4 pt-3 border-t border-gray-100">All position and traffic data from Google Search Console. Click the green checkmark to view the full page report.</p>
-  </DashboardModal>
-
-  <!-- Issues Modal -->
-  <DashboardModal id="issues" title="What's Holding You Back" subtitle={`YMYL trust signal gaps affecting all ${pages.length} tracked pages`}>
-    <div class="space-y-2">
-      {siteWideIssues.critical.map(item => (
-        <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
-          <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-          </svg>
-          <div class="flex-1">
-            <p class="text-sm text-red-900">{item.issue}</p>
-            <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-    <p class="text-xs text-gray-500 mt-4">Page-specific issues (meta tags, images, headings) are in each page's individual report.</p>
-  </DashboardModal>
-
-  <!-- Strategic Findings Modal -->
-  {considerations && considerations.length > 0 && (
-    <DashboardModal id="findings" title="Strategic Findings" subtitle="Analysis of untapped authority opportunities">
-      <div class="space-y-4">
-        {considerations.map((note, index) => (
-          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <!-- Collapsed Header -->
+    <div class="divide-y divide-gray-100">
+      {processedPages.map(page => (
+          <div class="page-row">
+            {/* Page header row — always visible */}
             <button
-              data-toggle={`consideration-${index}`}
-              class="w-full text-left px-5 py-4 hover:bg-gray-50 transition-colors"
+              data-toggle={`page-${page.index}`}
+              class="w-full text-left px-6 py-4 hover:bg-gray-50 transition-colors"
             >
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                  <span class={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                    note.severity === 'HIGH' ? 'bg-amber-100 text-amber-800' :
-                    note.severity === 'CRITICAL' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {note.category}
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-4 flex-1 min-w-0">
+                  <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${page.posColor}`}>
+                    #{page.position.toFixed(1)}
                   </span>
-                  <h4 class="text-sm font-semibold text-gray-900 truncate">{note.title}</h4>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <p class="text-sm font-medium text-gray-900 truncate">{page.shortName}</p>
+                      {page.reportSlug && (
+                        <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800 flex-shrink-0" title="View audit report" onclick="event.stopPropagation()">
+                          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                          </svg>
+                          <span class="text-xs ml-0.5">Audit</span>
+                        </a>
+                      )}
+                    </div>
+                    <p class="text-xs text-gray-400 truncate">{page.url}</p>
+                  </div>
                 </div>
-                <div class="flex items-center space-x-2 ml-4">
-                  <span class="text-sm text-blue-600 font-medium">Details</span>
-                  <svg class="w-5 h-5 text-blue-600 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
+                <div class="flex items-center gap-6 flex-shrink-0">
+                  <div class="text-right hidden sm:block">
+                    <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
+                    <p class="text-xs text-gray-400">clicks</p>
+                  </div>
+                  <div class="text-right hidden sm:block">
+                    <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
+                    <p class="text-xs text-gray-400">impr</p>
+                  </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctr}%</p>
+                    <p class="text-xs text-gray-400">CTR</p>
+                  </div>
+                  <div class="flex items-center gap-1 text-gray-400">
+                    <span class="text-xs">{page.queries.length} kw</span>
+                    <svg class="w-4 h-4 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </button>
 
-            <!-- Expanded Details -->
-            <div id={`consideration-${index}`} class="hidden border-t border-gray-200">
-              <div class="px-5 py-5 space-y-5">
-                <div>
-                  <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">What We Found</h5>
-                  <p class="text-sm text-gray-800 leading-relaxed">{note.finding}</p>
+            {/* Expanded keyword detail */}
+            <div id={`page-${page.index}`} class="hidden border-t border-gray-100 bg-gray-50">
+              <div class="px-6 py-4">
+                {/* Mobile metrics (hidden on desktop where they show in header) */}
+                <div class="grid grid-cols-3 gap-3 mb-4 sm:hidden">
+                  <div class="bg-white rounded p-2 text-center">
+                    <p class="text-sm font-medium text-gray-900">{page.clicks}</p>
+                    <p class="text-xs text-gray-400">clicks</p>
+                  </div>
+                  <div class="bg-white rounded p-2 text-center">
+                    <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
+                    <p class="text-xs text-gray-400">impr</p>
+                  </div>
+                  <div class="bg-white rounded p-2 text-center">
+                    <p class="text-sm text-gray-600">{page.ctr}%</p>
+                    <p class="text-xs text-gray-400">CTR</p>
+                  </div>
                 </div>
 
-                {note.source && (
-                  <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                    <div class="flex items-start space-x-4">
-                      <div class="flex-shrink-0 w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-gray-900">{note.source.title}</p>
-                        <p class="text-sm text-gray-600">{note.source.author} &middot; {note.source.publisher}</p>
-                        <div class="flex items-center space-x-4 mt-1 text-sm">
-                          <span class="text-amber-700 font-medium">{note.source.rating} stars</span>
-                          <span class="text-gray-600">{note.source.reviewCount} reviews</span>
-                        </div>
-                        <a href={note.source.url} target="_blank" rel="noopener noreferrer" class="text-sm text-blue-600 hover:underline mt-1 inline-block">
-                          View on {note.source.type} &nearr;
-                        </a>
-                        {note.additionalSources && note.additionalSources.length > 0 && (
-                          <div class="mt-3 pt-3 border-t border-gray-200">
-                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Also on</p>
-                            <div class="flex flex-wrap gap-3">
-                              {note.additionalSources.map(src => (
-                                <a href={src.url} target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-2 text-sm text-blue-600 hover:underline">
-                                  <span class="font-medium">{src.type}</span>
-                                  <span class="text-gray-500">({src.rating} stars &middot; {src.ratingCount} ratings)</span>
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                {/* Keywords with clicks */}
+                {page.clickQueries.length >= 1 && (
+                  <div class="mb-4">
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Driving clicks ({page.clickQueries.length})</p>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr class="text-xs text-gray-400 uppercase tracking-wider">
+                            <th class="text-left py-1.5 pr-3">Keyword</th>
+                            <th class="text-right py-1.5 px-2">Clicks</th>
+                            <th class="text-right py-1.5 px-2">Impr</th>
+                            <th class="text-right py-1.5 px-2">CTR</th>
+                            <th class="text-right py-1.5 pl-2">Pos</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {page.clickQueries.map(q => (
+                            <tr class="border-t border-gray-200">
+                              <td class="py-1.5 pr-3 text-gray-800">{q.query}</td>
+                              <td class="py-1.5 px-2 text-right font-medium text-gray-900">{q.clicks}</td>
+                              <td class="py-1.5 px-2 text-right text-gray-500">{q.impressions.toLocaleString()}</td>
+                              <td class="py-1.5 px-2 text-right text-gray-500">{q.ctr}%</td>
+                              <td class="py-1.5 pl-2 text-right">
+                                <span class={`text-xs font-medium ${posTextColor(q.position)}`}>
+                                  {q.position}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* Impression-only keywords (5+ impressions, no clicks) */}
+                {page.impressionOnlyQueries.length >= 1 && (
+                  <div>
+                    <button data-toggle={`page-${page.index}-impr`} class="flex items-center gap-1 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 hover:text-gray-600">
+                      <span>Impressions only ({page.impressionOnlyQueries.length})</span>
+                      <svg class="w-3 h-3 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </button>
+                    <div id={`page-${page.index}-impr`} class="hidden">
+                      <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                          <thead>
+                            <tr class="text-xs text-gray-400 uppercase tracking-wider">
+                              <th class="text-left py-1.5 pr-3">Keyword</th>
+                              <th class="text-right py-1.5 px-2">Impr</th>
+                              <th class="text-right py-1.5 pl-2">Pos</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {page.impressionOnlyQueries.map(q => (
+                              <tr class="border-t border-gray-200">
+                                <td class="py-1.5 pr-3 text-gray-600">{q.query}</td>
+                                <td class="py-1.5 px-2 text-right text-gray-400">{q.impressions}</td>
+                                <td class="py-1.5 pl-2 text-right">
+                                  <span class={`text-xs ${posTextColor(q.position)}`}>
+                                    {q.position}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {note.platforms && note.platforms.length > 0 && (
-                  <div>
-                    <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">External Profiles (sameAs targets)</h5>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {note.platforms.map(platform => (
-                        <a href={platform.url} target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                          <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
-                              </svg>
-                            </div>
-                            <span class="text-sm font-medium text-gray-900">{platform.name}</span>
-                          </div>
-                          <span class="text-xs text-gray-500">{platform.metric}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
+                {/* No keyword data case */}
+                {page.queries.length === 0 && (
+                  <p class="text-sm text-gray-400 italic">No individual keyword data available — traffic spread across many anonymized long-tail queries.</p>
                 )}
 
-                <div>
-                  <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Why This Matters for Rankings</h5>
-                  <p class="text-sm text-gray-800 leading-relaxed">{note.whyItMatters}</p>
-                </div>
-
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h5 class="text-sm font-semibold text-blue-900 mb-2">Competitive Advantage</h5>
-                  <p class="text-sm text-blue-800 leading-relaxed">{note.competitiveAngle}</p>
-                </div>
-
-                {note.actionItems && note.actionItems.length > 0 && (
-                  <div>
-                    <h5 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Implementation Steps</h5>
-                    <div class="space-y-3">
-                      {note.actionItems.map((item, i) => (
-                        <div class="flex items-start p-4 bg-green-50 border border-green-200 rounded-lg">
-                          <div class="flex-shrink-0 w-6 h-6 bg-green-600 rounded-full flex items-center justify-center mr-3 mt-0.5">
-                            <span class="text-xs font-bold text-white">{i + 1}</span>
-                          </div>
-                          <div>
-                            <p class="text-sm font-semibold text-green-900">{item.task}</p>
-                            <p class="text-sm text-green-800 mt-1 leading-relaxed">{item.detail}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                {page.reportSlug && (
+                  <div class="mt-4 pt-3 border-t border-gray-200">
+                    <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                      </svg>
+                      View full audit report
+                    </a>
                   </div>
                 )}
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    </DashboardModal>
-  )}
-
-  <!-- Action Plan Modal -->
-  <DashboardModal id="plan" title="Action Plan" subtitle={actionPlan.summary}>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {actionPlan.phases.map(phase => (
-        <div class={`border rounded-lg p-5 ${phase.priority === 'CRITICAL' ? 'border-red-200 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
-          <div class="flex items-center space-x-3 mb-3">
-            <div class={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white ${phase.priority === 'CRITICAL' ? 'bg-red-500' : 'bg-blue-500'}`}>
-              {phase.phase}
-            </div>
-            <div>
-              <h4 class="font-semibold text-gray-900">{phase.name}</h4>
-              <p class="text-sm text-gray-500">{phase.timeline}</p>
-            </div>
-          </div>
-          <p class="text-sm text-gray-700 mb-3">{phase.description}</p>
-          <div class={`text-sm font-medium ${phase.priority === 'CRITICAL' ? 'text-red-800' : 'text-blue-800'}`}>
-            {phase.expectedImpact}
-          </div>
-        </div>
-      ))}
-    </div>
-  </DashboardModal>
-
-  <!-- YMYL & E-E-A-T System Modal -->
-  <DashboardModal id="ymyl-eeat" title="YMYL & E-E-A-T System" subtitle="How trust signals, author authority, and schema connect across the site">
-    <p class="text-sm text-gray-700 mb-6">{ymylEeat.summary}</p>
-
-    <!-- The Authority Chain -->
-    <h4 class="text-sm font-semibold text-gray-900 mb-3">The Authority Chain</h4>
-    <p class="text-xs text-gray-500 mb-3">Every link below must be connected for Google to verify expertise on this YMYL health site.</p>
-    <div class="space-y-2 mb-8">
-      {ymylEeat.chain.map(link => (
-        <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-lg">
-          <svg class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-          </svg>
-          <div class="flex-1">
-            <p class="text-sm font-medium text-gray-900">{link.from} → {link.to}</p>
-            <p class="text-xs text-red-700 mt-0.5">{link.detail}</p>
-          </div>
-        </div>
       ))}
     </div>
 
-    <!-- The Hub -->
-    <div class="bg-purple-50 border border-purple-200 rounded-lg p-5 mb-8">
-      <h4 class="text-sm font-semibold text-purple-900 mb-2">The Hub: {ymylEeat.authorHub.name}</h4>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current state</p>
-          <p class="text-gray-700">{ymylEeat.authorHub.currentState}</p>
-          <p class="text-xs text-gray-400 font-mono mt-1">{ymylEeat.authorHub.currentPage}</p>
-        </div>
-        <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Target state</p>
-          <p class="text-gray-700">{ymylEeat.authorHub.targetState}</p>
-        </div>
-      </div>
+    <div class="px-6 py-3 border-t border-gray-200 bg-gray-50">
+      <p class="text-xs text-gray-400">All data from Google Search Console &middot; {totalKeywords} total keyword entries across {pages.length} pages &middot; Pages with 3+ clicks or 200+ impressions</p>
     </div>
-
-    <!-- Trust Signals -->
-    <h4 class="text-sm font-semibold text-gray-900 mb-3">Trust Signals</h4>
-    <div class="space-y-2 mb-6">
-      {ymylEeat.signals.map(signal => (
-        <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-200">
-          <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 ${
-            signal.status === 'missing' ? 'bg-red-100 text-red-700' :
-            signal.status === 'hidden' ? 'bg-orange-100 text-orange-700' :
-            signal.status === 'stale' ? 'bg-amber-100 text-amber-700' :
-            signal.status === 'unused' ? 'bg-blue-100 text-blue-700' :
-            'bg-gray-100 text-gray-600'
-          }`}>{signal.status}</span>
-          <div class="flex-1">
-            <div class="flex items-center gap-2">
-              <p class="text-sm font-medium text-gray-900">{signal.name}</p>
-              <span class={`text-xs px-1.5 py-0.5 rounded ${signal.type === 'ymyl' ? 'bg-red-50 text-red-600' : 'bg-purple-50 text-purple-600'}`}>{signal.type === 'ymyl' ? 'YMYL' : 'E-E-A-T'}</span>
-            </div>
-            <p class="text-xs text-gray-600 mt-0.5">{signal.detail}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-
-    <!-- Why It Matters -->
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-      <h4 class="text-sm font-semibold text-gray-700 mb-2">Why This Matters</h4>
-      <p class="text-sm text-gray-700 leading-relaxed">{ymylEeat.whyItMatters}</p>
-    </div>
-  </DashboardModal>
-
-  <!-- Admin Checklist Modal -->
-  <div class="admin-only hidden">
-    <DashboardModal id="checklist" title="Implementation Checklist" subtitle={adminChecklist.summary} adminOnly={true}>
-      <div class="space-y-8">
-        {adminChecklist.groups.map(group => (
-          <div>
-            <div class="flex items-center gap-2 mb-3">
-              <span class={`w-2 h-2 rounded-full ${
-                group.color === 'green' ? 'bg-green-500' :
-                group.color === 'blue' ? 'bg-blue-500' :
-                group.color === 'amber' ? 'bg-amber-500' :
-                'bg-red-500'
-              }`}></span>
-              <h4 class="text-sm font-semibold text-gray-900">{group.name}</h4>
-              <span class="text-xs text-gray-400">{group.description}</span>
-            </div>
-            <div class="space-y-2">
-              {group.items.map(item => (
-                <div class={`p-4 rounded-lg border ${
-                  group.color === 'green' ? 'bg-green-50 border-green-200' :
-                  group.color === 'blue' ? 'bg-blue-50 border-blue-200' :
-                  group.color === 'amber' ? 'bg-amber-50 border-amber-200' :
-                  'bg-red-50 border-red-200'
-                }`}>
-                  <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-start gap-2 flex-1">
-                      <span class={`mt-1 w-4 h-4 rounded border-2 flex-shrink-0 ${
-                        group.color === 'green' ? 'border-green-400' :
-                        group.color === 'blue' ? 'border-blue-400' :
-                        group.color === 'amber' ? 'border-amber-400' :
-                        'border-red-400'
-                      }`}></span>
-                      <div>
-                        <p class="text-sm font-medium text-gray-900">{item.task}</p>
-                        <p class="text-xs text-gray-600 mt-1 leading-relaxed">{item.detail}</p>
-                        {item.seeCard && (
-                          <p class="text-xs text-purple-600 mt-1.5 font-medium cursor-pointer" data-open-modal={item.seeCard}>
-                            → See {item.seeCard === 'ymyl-eeat' ? 'YMYL & E-E-A-T' : item.seeCard} card
-                          </p>
-                        )}
-                        {item.seeReport && (
-                          <p class="text-xs text-blue-600 mt-1.5">
-                            → {item.seeReport}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span class={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
-                        group.color === 'green' ? 'bg-green-200 text-green-800' :
-                        group.color === 'blue' ? 'bg-blue-200 text-blue-800' :
-                        group.color === 'amber' ? 'bg-amber-200 text-amber-800' :
-                        'bg-red-200 text-red-800'
-                      }`}>{item.effort}</span>
-                      {item.page && <span class="text-xs text-gray-400">{item.page}</span>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </DashboardModal>
   </div>
 </Layout>
