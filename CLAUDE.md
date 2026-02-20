@@ -51,7 +51,7 @@ Each client follows this structure:
 ## Deployment
 ```bash
 # Build & deploy via Coolify API
-curl -s -X POST "http://localhost:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" \
+curl -s -X POST "http://89.167.46.71:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" \
   -H "Authorization: Bearer ..." -H "Content-Type: application/json"
 ```
 Git push to `main` on `github.com/woophone/seodash` triggers Coolify auto-deploy.
@@ -79,9 +79,9 @@ Git push to `main` on `github.com/woophone/seodash` triggers Coolify auto-deploy
 - Fallback: Web UI at `https://pagespeed.web.dev/`
 
 ### Coolify Deployment
-- API: `http://localhost:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart`
+- API: `http://89.167.46.71:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart`
 - Auth token in env: `COOLIFY_API_TOKEN`
-- Or use: `curl -s -X POST "http://localhost:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" -H "Content-Type: application/json"`
+- Or use: `curl -s -X POST "http://89.167.46.71:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" -H "Content-Type: application/json"`
 
 ## Per-Page Report Workflow (PROJECT RULE)
 For every page report, ALWAYS follow this two-layer process:
