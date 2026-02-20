@@ -31,6 +31,7 @@ export const clientData = {
       topKeyword: "hypersexuality test",
       topKeywordPosition: 7.7,
       status: "page-1",
+      reportSlug: "quiz",
       note: "Primary traffic driver. Impressions crashed ~50% after Feb 8. Missing all YMYL signals."
     },
     {
@@ -220,29 +221,8 @@ export const clientData = {
         verified: "Yoast schema only outputs WebPage, BreadcrumbList, WebSite types"
       }
     ],
-    onPage: [
-      {
-        issue: "Meta description contains typo 'hypersexualtiy' (should be 'hypersexuality')",
-        applies: "Quiz page",
-        verified: "Wayback Machine archive + Yoast schema description field"
-      },
-      {
-        issue: "Title tag is 87 characters — truncated in Google results at ~60 chars",
-        applies: "Quiz page",
-        verified: "Yoast schema name field",
-        current: "Hypersexuality Test - Find Out If You Have A Sex Or Porn Addiction | Neulia Compulsion Solutions"
-      },
-      {
-        issue: "No H2 tags — heading hierarchy jumps from H1 to H4",
-        applies: "Quiz page",
-        verified: "Wayback Machine archive"
-      },
-      {
-        issue: "3 images missing alt text: header logo, book cover, footer logo",
-        applies: "Quiz page",
-        verified: "Wayback Machine archive (all 3 have empty alt attributes)"
-      }
-    ]
+    // On-page issues moved to per-page reports (e.g., cs-quiz-report.js)
+    // Dashboard only shows site-wide issues that affect ALL pages
   },
 
   considerations: [

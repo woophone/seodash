@@ -1,6 +1,6 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import { clientData } from '../data/compulsionsolutions-data.js';
+import Layout from '../../layouts/Layout.astro';
+import { clientData } from '../../data/compulsionsolutions-data.js';
 
 const { client, overview, pages, siteWideIssues, considerations, actionPlan } = clientData;
 
@@ -79,10 +79,11 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
           <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
             <th class="px-6 py-3 text-left">Page</th>
             <th class="px-4 py-3 text-right">Position</th>
+            <th class="px-4 py-3 text-left">Top Keyword</th>
             <th class="px-4 py-3 text-right">Clicks</th>
             <th class="px-4 py-3 text-right">Impressions</th>
             <th class="px-4 py-3 text-right">CTR</th>
-            <th class="px-6 py-3 text-left">Note</th>
+            <th class="px-3 py-3 text-center">Report</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -97,10 +98,36 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   #{page.position.toFixed(1)}
                 </span>
               </td>
+              <td class="px-4 py-3">
+                {page.topKeyword ? (
+                  <div>
+                    <p class="text-xs text-gray-700">{page.topKeyword}</p>
+                    {page.topKeywordPosition && (
+                      <p class="text-xs text-gray-400">pos #{page.topKeywordPosition}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p class="text-xs text-gray-400 italic">Long-tail spread</p>
+                )}
+              </td>
               <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
               <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
               <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-6 py-3 text-xs text-gray-500 max-w-xs">{page.note}</td>
+              <td class="px-3 py-3 text-center">
+                {page.reportSlug ? (
+                  <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                  </a>
+                ) : (
+                  <span class="inline-flex items-center text-gray-300" title="Report pending">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                  </span>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -120,10 +147,11 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
           <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
             <th class="px-6 py-3 text-left">Page</th>
             <th class="px-4 py-3 text-right">Position</th>
+            <th class="px-4 py-3 text-left">Top Keyword</th>
             <th class="px-4 py-3 text-right">Clicks</th>
             <th class="px-4 py-3 text-right">Impressions</th>
             <th class="px-4 py-3 text-right">CTR</th>
-            <th class="px-6 py-3 text-left">Note</th>
+            <th class="px-3 py-3 text-center">Report</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
@@ -138,70 +166,69 @@ const page2Pages = pages.filter(p => p.status === 'page-2');
                   #{page.position.toFixed(1)}
                 </span>
               </td>
+              <td class="px-4 py-3">
+                {page.topKeyword ? (
+                  <div>
+                    <p class="text-xs text-gray-700">{page.topKeyword}</p>
+                    {page.topKeywordPosition && (
+                      <p class="text-xs text-gray-400">pos #{page.topKeywordPosition}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p class="text-xs text-gray-400 italic">Long-tail spread</p>
+                )}
+              </td>
               <td class="px-4 py-3 text-right text-sm font-medium text-gray-900">{page.clicks}</td>
               <td class="px-4 py-3 text-right text-sm text-gray-600">{page.impressions.toLocaleString()}</td>
               <td class="px-4 py-3 text-right text-sm text-gray-600">{page.ctr}%</td>
-              <td class="px-6 py-3 text-xs text-gray-500 max-w-xs">{page.note}</td>
+              <td class="px-3 py-3 text-center">
+                {page.reportSlug ? (
+                  <a href={`/cs/pages/${page.reportSlug}/`} class="inline-flex items-center text-green-600 hover:text-green-800" title="View report">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                  </a>
+                ) : (
+                  <span class="inline-flex items-center text-gray-300" title="Report pending">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                  </span>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
     <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-      <p class="text-xs text-gray-500">All position and traffic data from Google Search Console. Competitor data excluded — this shows only your verified performance.</p>
+      <p class="text-xs text-gray-500">All position and traffic data from Google Search Console. Click the green checkmark to view the full page report.</p>
     </div>
   </div>
 
   <!-- ============================================ -->
-  <!-- SITE-WIDE ISSUES -->
+  <!-- SITE-WIDE ISSUES (Critical YMYL only) -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">What's Holding You Back</h3>
-      <p class="text-sm text-gray-600">Issues affecting your rankings across all {pages.length} tracked pages</p>
+      <p class="text-sm text-gray-600">YMYL trust signal gaps affecting all {pages.length} tracked pages</p>
     </div>
     <div class="p-6">
-      <!-- Critical YMYL Issues -->
-      <div class="mb-6">
-        <h4 class="text-sm font-semibold text-red-700 uppercase tracking-wider mb-3 flex items-center">
-          <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-          YMYL Trust Signals (Critical)
-        </h4>
-        <div class="space-y-2">
-          {siteWideIssues.critical.map(item => (
-            <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
-              <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-              <div class="flex-1">
-                <p class="text-sm text-red-900">{item.issue}</p>
-                <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
-              </div>
+      <div class="space-y-2">
+        {siteWideIssues.critical.map(item => (
+          <div class="flex items-start p-3 bg-red-50 border border-red-100 rounded-lg">
+            <svg class="w-4 h-4 text-red-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm text-red-900">{item.issue}</p>
+              <p class="text-xs text-red-600 mt-0.5">Affects: {item.applies}</p>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-
-      <!-- On-Page Issues -->
-      <div>
-        <h4 class="text-sm font-semibold text-orange-700 uppercase tracking-wider mb-3 flex items-center">
-          <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-          On-Page Issues (Quick Fixes)
-        </h4>
-        <div class="space-y-2">
-          {siteWideIssues.onPage.map(item => (
-            <div class="flex items-start p-3 bg-orange-50 border border-orange-100 rounded-lg">
-              <svg class="w-4 h-4 text-orange-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
-              <div class="flex-1">
-                <p class="text-sm text-orange-900">{item.issue}</p>
-                <p class="text-xs text-orange-600 mt-0.5">Affects: {item.applies}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <p class="text-xs text-gray-500 mt-4">Page-specific issues (meta tags, images, headings) are in each page's individual report.</p>
     </div>
   </div>
 
