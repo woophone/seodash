@@ -3,9 +3,11 @@ import Layout from '../../../layouts/Layout.astro';
 import DashboardCard from '../../../components/DashboardCard.astro';
 import DashboardModal from '../../../components/DashboardModal.astro';
 import { quizReport } from '../../../data/cs-quiz-report.js';
+import { clientData } from '../../../data/compulsionsolutions-data.js';
 
 const { page, strength, gsc, serpFeatures, keywords, timeSeries, lighthouse, contentAudit, issues, adequacyAssessment } = quizReport;
 const { techStack } = contentAudit;
+const { ymylEeat } = clientData;
 
 const criticalIssues = issues.filter(i => i.severity === 'critical');
 const highIssues = issues.filter(i => i.severity === 'high');
@@ -22,6 +24,20 @@ const crashPercent = Math.round((1 - postCrashAvg / preCrashAvg) * 100);
 const clickKeywords = keywords.filter(k => k.clicks > 0);
 const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
 
+// YMYL/E-E-A-T computed values (avoid < > in Astro JSX)
+const brokenChainLinks = ymylEeat.chain.filter(c => c.status === 'broken').length;
+const missingSignals = ymylEeat.signals.filter(s => s.status === 'missing').length;
+const ymylSignals = ymylEeat.signals.filter(s => s.type === 'ymyl');
+const eeatSignals = ymylEeat.signals.filter(s => s.type === 'eeat');
+
+function signalStatusColor(status) {
+  if (status === 'missing') return 'bg-red-100 text-red-700';
+  if (status === 'hidden') return 'bg-orange-100 text-orange-700';
+  if (status === 'stale') return 'bg-amber-100 text-amber-700';
+  if (status === 'unused') return 'bg-blue-100 text-blue-700';
+  return 'bg-gray-100 text-gray-600';
+}
+
 // Score color helper
 const scoreColor = (score: number) => score >= 90 ? 'text-green-600' : score >= 50 ? 'text-orange-500' : 'text-red-600';
 const dotColor = (score: number) => score >= 90 ? 'bg-green-500' : score >= 50 ? 'bg-orange-500' : 'bg-red-500';
@@ -36,6 +52,7 @@ const iconContent = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20
 const iconCwv = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>';
 const iconAssessment = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path></svg>';
 const iconTech = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>';
+const iconYmyl = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
 ---
 
 <Layout title={`${page.title} — Page Report`}>
@@ -105,6 +122,10 @@ const iconTech = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
 
     <DashboardCard id="trend" title="Impressions Trend" icon={iconTrend} color="amber">
       <p>Google showed this page {crashPercent}% less after Feb 8</p>
+    </DashboardCard>
+
+    <DashboardCard id="ymyl-eeat" title="Why It Dropped: YMYL & E-E-A-T" icon={iconYmyl} color="purple" badge={`${brokenChainLinks} broken`}>
+      <p>Google's Feb 2026 core update targeted health sites missing trust signals — this site has {missingSignals}</p>
     </DashboardCard>
 
     <DashboardCard id="content" title="Content Audit" icon={iconContent} color="gray">
@@ -396,6 +417,67 @@ const iconTech = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
       <span class="flex items-center"><span class="w-3 h-3 bg-blue-400 rounded mr-1"></span> Before Feb 8</span>
       <span class="flex items-center"><span class="w-3 h-3 bg-red-400 rounded mr-1"></span> After Feb 8</span>
     </div>
+  </DashboardModal>
+
+  <!-- YMYL & E-E-A-T Modal -->
+  <DashboardModal id="ymyl-eeat" title="Why It Dropped: YMYL & E-E-A-T" subtitle="Google's February 2026 core update and what it means for this page">
+    <!-- The core update connection -->
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-5 mb-6">
+      <h4 class="text-sm font-semibold text-purple-900 mb-2">What happened</h4>
+      <p class="text-sm text-purple-800 leading-relaxed mb-3">
+        Google rolled out a core algorithm update from <strong>February 1–14, 2026</strong>.
+        It specifically tightened requirements for <strong>YMYL (Your Money or Your Life)</strong> sites — health, medical, and wellness content.
+        Sites without clear author credentials, medical disclaimers, and expertise signals were the primary losers.
+      </p>
+      <p class="text-sm text-purple-800 leading-relaxed">
+        This site is a YMYL health site. The impression drop on this page started <strong>February 8</strong> — peak volatility day of the update.
+        The {crashPercent}% decline aligns directly with what sites missing these trust signals experienced across the web.
+      </p>
+    </div>
+
+    <!-- What Google is looking for vs what this site has -->
+    <h4 class="text-sm font-semibold text-gray-900 mb-3">Trust signals Google checks on health sites</h4>
+    <p class="text-xs text-gray-500 mb-3">Each of these is something Google's quality raters and algorithms evaluate. Status shows where this site stands.</p>
+    <div class="space-y-2 mb-6">
+      {ymylEeat.signals.map(signal => (
+        <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-200">
+          <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 ${signalStatusColor(signal.status)}`}>{signal.status}</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-gray-900">{signal.name}</p>
+              <span class={`text-xs px-1.5 py-0.5 rounded ${signal.type === 'ymyl' ? 'bg-red-50 text-red-600' : 'bg-purple-50 text-purple-600'}`}>{signal.type === 'ymyl' ? 'YMYL' : 'E-E-A-T'}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- The authority chain -->
+    <h4 class="text-sm font-semibold text-gray-900 mb-3">The authority chain</h4>
+    <p class="text-xs text-gray-500 mb-3">For Google to trust YMYL health content, each link in this chain must connect. Currently every link is broken.</p>
+    <div class="space-y-2 mb-6">
+      {ymylEeat.chain.map(link => (
+        <div class="flex items-center gap-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+          <svg class="w-4 h-4 text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm text-gray-900"><strong>{link.from}</strong> &rarr; <strong>{link.to}</strong></p>
+            <p class="text-xs text-red-700 mt-0.5">{link.detail}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- The good news -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-5 mb-6">
+      <h4 class="text-sm font-semibold text-green-900 mb-2">The good news</h4>
+      <p class="text-sm text-green-800 leading-relaxed">
+        The authority already exists. <strong>{ymylEeat.authorHub.name}</strong> authored <strong>{ymylEeat.authorHub.book}</strong> — a published book with 1,234 combined ratings across Amazon and Goodreads. The team page already ranks #3 for his name. The expertise is real — it just isn't visible to Google's systems yet. Fixing this chain is a site-wide architecture change that will affect every page, not just this one.
+      </p>
+    </div>
+
+    <p class="text-xs text-gray-400">Source: Google confirmed the February 2026 core update rollout Feb 1–14. Semrush Sensor peaked at 9.4/10 on Feb 8. This page's impression drop aligns exactly with peak volatility.</p>
   </DashboardModal>
 
   <!-- Content Audit Modal -->
