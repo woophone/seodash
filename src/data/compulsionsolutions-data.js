@@ -644,17 +644,17 @@ export const clientData = {
       {
         issue: "No medical disclaimers on any content page",
         applies: "All pages",
-        verified: "Wayback Machine archive + page inspection"
+        verified: "Live page inspection (Feb 2026)"
       },
       {
         issue: "No author credentials displayed — George Collins holds an MA but it appears nowhere on content pages",
         applies: "All pages",
-        verified: "Wayback Machine archive"
+        verified: "Live page inspection (Feb 2026)"
       },
       {
         issue: "No 'seek professional help' warnings on assessment or advice content",
         applies: "All pages",
-        verified: "Wayback Machine archive"
+        verified: "Live page inspection (Feb 2026)"
       },
       {
         issue: "Content last updated April 2022 — schema dateModified confirms stale YMYL content",

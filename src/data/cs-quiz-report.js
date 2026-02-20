@@ -8,7 +8,7 @@ export const quizReport = {
     title: "Hypersexuality Quiz",
     fullTitle: "Sex and Porn Addiction Quizzes",
     analysisDate: "2026-02-20",
-    archiveSource: "Live HTML (Feb 2026) — confirmed identical content area to Wayback May 2024"
+    archiveSource: "Live HTML (Feb 20, 2026)"
   },
 
   // What's working — lead with strength
@@ -329,7 +329,7 @@ export const quizReport = {
   ],
 
   adequacyAssessment: {
-    whatWeHave: "GSC keyword data (47 queries), Semrush SERP feature landscape (top 3 keywords), daily time series showing the impression crash, Lighthouse scores (mobile + desktop), content area audit from live HTML (Feb 2026, confirmed identical to Wayback May 2024), meta tag analysis, schema inspection, claude-seo cross-validation audit.",
+    whatWeHave: "GSC keyword data (47 queries), Semrush SERP feature landscape (top 3 keywords), daily time series showing the impression crash, Lighthouse scores (mobile + desktop), content area audit from live HTML (Feb 20, 2026), meta tag analysis, schema inspection, claude-seo cross-validation audit.",
     whatsMissing: [
       "Inbound internal links — which pages on the site link TO this quiz page within their content? This is the most important internal linking metric for a page driving 34% of site traffic, and we haven't measured it. Requires a site crawl.",
       "Competitor content comparison — what do the pages ranking positions 1-5 look like? How much content do they have? What schema? (Blocked by Cloudflare from Hetzner — need residential proxy.)",
