@@ -2,7 +2,7 @@
 import Layout from '../../../layouts/Layout.astro';
 import { quizReport } from '../../../data/cs-quiz-report.js';
 
-const { page, gsc, keywords, timeSeries, lighthouse, contentAudit, issues, adequacyAssessment } = quizReport;
+const { page, strength, gsc, serpFeatures, keywords, timeSeries, lighthouse, contentAudit, issues, adequacyAssessment } = quizReport;
 
 const criticalIssues = issues.filter(i => i.severity === 'critical');
 const highIssues = issues.filter(i => i.severity === 'high');
@@ -16,7 +16,6 @@ const preCrashAvg = Math.round(preCrashDays.reduce((s, d) => s + d.impressions, 
 const postCrashAvg = Math.round(postCrashDays.reduce((s, d) => s + d.impressions, 0) / postCrashDays.length);
 const crashPercent = Math.round((1 - postCrashAvg / preCrashAvg) * 100);
 
-// Keywords with clicks vs impression-only
 const clickKeywords = keywords.filter(k => k.clicks > 0);
 const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
 ---
@@ -38,10 +37,10 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
       <div>
         <h2 class="text-3xl font-bold text-gray-900">{page.title}</h2>
         <p class="text-sm text-gray-500 mt-1 font-mono">{page.url}</p>
-        <p class="text-xs text-gray-400 mt-2">Content source: {page.archiveSource}</p>
       </div>
       <div class="text-right">
-        <p class="text-xs text-gray-400">Report generated: {page.analysisDate}</p>
+        <p class="text-xs text-gray-400">Report: {page.analysisDate}</p>
+        <p class="text-xs text-gray-400">Content: {page.archiveSource}</p>
       </div>
     </div>
 
@@ -67,15 +66,73 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   </div>
 
   <!-- ============================================ -->
-  <!-- IMPRESSION TREND (CSS-only chart) -->
+  <!-- WHAT'S WORKING -->
+  <!-- ============================================ -->
+  <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+    <h3 class="text-lg font-semibold text-green-900 mb-2">{strength.headline}</h3>
+    <p class="text-sm text-green-800 leading-relaxed">{strength.detail}</p>
+    <p class="text-sm text-green-700 mt-2"><strong>Competition:</strong> Keyword difficulty {strength.kd}</p>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- SERP FEATURES -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">SERP Landscape</h3>
+      <p class="text-sm text-gray-600">What's competing for clicks alongside this page</p>
+    </div>
+    <div class="p-6">
+      <p class="text-sm text-gray-700 mb-4">{serpFeatures.summary}</p>
+
+      <div class="space-y-4 mb-6">
+        {serpFeatures.keywords.map(kw => (
+          <div class="border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-semibold text-gray-900">"{kw.query}"</span>
+              <div class="flex items-center gap-3 text-xs text-gray-500">
+                <span>{kw.volume.toLocaleString()} vol/mo</span>
+                {kw.position && <span>Pos #{kw.position}</span>}
+                {kw.kd !== null && <span>KD {kw.kd}</span>}
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-1.5 mb-2">
+              {kw.features.map(feat => (
+                <span class={`text-xs px-2 py-0.5 rounded-full ${
+                  feat === 'Ads top' || feat === 'Ads bottom' ? 'bg-red-100 text-red-700' :
+                  feat === 'AI Overview' ? 'bg-purple-100 text-purple-700' :
+                  feat === 'People also ask' ? 'bg-amber-100 text-amber-700' :
+                  feat === 'Discussions and forums' ? 'bg-blue-100 text-blue-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>{feat}</span>
+              ))}
+            </div>
+            <p class="text-xs text-gray-600">{kw.note}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- CTR context -->
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+        <p class="text-sm text-blue-800"><strong>CTR in context:</strong> {serpFeatures.ctrContext}</p>
+      </div>
+
+      <!-- Crash theory -->
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <p class="text-sm text-amber-800"><strong>Impression crash theory:</strong> {serpFeatures.crashTheory}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- IMPRESSION TREND -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Impressions Trend</h3>
-      <p class="text-sm text-gray-600">Daily impressions — showing the crash after Feb 8</p>
+      <p class="text-sm text-gray-600">Daily impressions — Jan 1 to Feb 17, 2026</p>
     </div>
     <div class="p-6">
-      <!-- Crash summary -->
       <div class="grid grid-cols-3 gap-4 mb-6">
         <div class="text-center p-3 bg-green-50 rounded-lg">
           <p class="text-lg font-bold text-green-700">{preCrashAvg}</p>
@@ -93,7 +150,7 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
 
       <!-- CSS bar chart -->
       <div class="flex items-end gap-px h-40">
-        {timeSeries.map((day, i) => {
+        {timeSeries.map(day => {
           const maxImp = Math.max(...timeSeries.map(d => d.impressions));
           const heightPct = (day.impressions / maxImp) * 100;
           const isPostCrash = day.date >= "2026-02-08";
@@ -112,7 +169,7 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
       </div>
       <div class="flex justify-between mt-2 text-xs text-gray-400">
         <span>Jan 1</span>
-        <span>Feb 8 (crash)</span>
+        <span class="text-red-500 font-medium">Feb 8</span>
         <span>Feb 17</span>
       </div>
       <div class="flex items-center gap-4 mt-3 text-xs text-gray-500">
@@ -128,10 +185,9 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Keywords ({keywords.length})</h3>
-      <p class="text-sm text-gray-600">All search queries driving traffic to this page ({gsc.dateRange})</p>
+      <p class="text-sm text-gray-600">All search queries from GSC ({gsc.dateRange})</p>
     </div>
 
-    <!-- Keywords with clicks -->
     <div class="px-6 pt-4 pb-2">
       <h4 class="text-sm font-semibold text-green-700 uppercase tracking-wider">
         Driving clicks ({clickKeywords.length})
@@ -201,12 +257,129 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   </div>
 
   <!-- ============================================ -->
+  <!-- CONTENT AREA AUDIT -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h3 class="text-lg font-semibold text-gray-900">Content Area Audit</h3>
+      <p class="text-sm text-gray-600">What's inside the WordPress content editor (not the theme template)</p>
+    </div>
+    <div class="p-6">
+      <!-- Key stats -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+          <p class="text-3xl font-bold text-gray-400">{contentAudit.wordCount}</p>
+          <p class="text-sm text-gray-500">Editorial words</p>
+        </div>
+        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+          <p class="text-3xl font-bold text-gray-400">{contentAudit.imagesInContent}</p>
+          <p class="text-sm text-gray-500">Images in content</p>
+        </div>
+        <div class="text-center p-4 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
+          <p class="text-3xl font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
+          <p class="text-sm text-gray-500">Contextual links</p>
+        </div>
+      </div>
+
+      <p class="text-sm text-gray-700 mb-6">{contentAudit.wordCountNote}</p>
+
+      <!-- What's actually in the content area -->
+      <h4 class="text-sm font-semibold text-gray-700 mb-3">Everything in the content area</h4>
+      <div class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200">
+        {contentAudit.contentAreaElements.map(el => (
+          <div class="px-4 py-3 flex items-start gap-3">
+            <span class={`text-xs font-bold px-2 py-0.5 rounded mt-0.5 ${
+              el.type === 'H1' ? 'bg-purple-100 text-purple-700' :
+              el.type.startsWith('subtitle') ? 'bg-blue-100 text-blue-700' :
+              'bg-gray-200 text-gray-600'
+            }`}>{el.type}</span>
+            <div class="flex-1">
+              <p class="text-sm text-gray-800">{el.text}</p>
+              {el.linksTo && <p class="text-xs text-gray-400 font-mono mt-0.5">{el.linksTo}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Internal links breakdown -->
+      <div class="mt-6">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Internal Links Breakdown</h4>
+        <div class="grid grid-cols-3 gap-3 mb-3">
+          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+            <p class="text-lg font-bold text-gray-400">{contentAudit.internalLinks.contextual}</p>
+            <p class="text-xs text-gray-500">Contextual (editorial)</p>
+          </div>
+          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+            <p class="text-lg font-bold text-gray-600">{contentAudit.internalLinks.functional}</p>
+            <p class="text-xs text-gray-500">Functional (buttons)</p>
+          </div>
+          <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+            <p class="text-lg font-bold text-gray-300">{contentAudit.internalLinks.template}</p>
+            <p class="text-xs text-gray-400">Template (nav/footer)</p>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500">{contentAudit.internalLinks.templateNote}</p>
+
+        <!-- Inbound links (unknown) -->
+        <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p class="text-xs text-amber-800"><strong>Inbound links to this page:</strong> {contentAudit.internalLinks.inbound}</p>
+        </div>
+
+        {contentAudit.internalLinks.potentialCannibalization && (
+          <div class="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <p class="text-xs text-orange-800"><strong>Possible cannibalization:</strong> {contentAudit.internalLinks.potentialCannibalization}</p>
+          </div>
+        )}
+      </div>
+
+      <!-- Meta tags -->
+      <div class="mt-6">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Meta Tags</h4>
+        <div class="space-y-3">
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-gray-500 uppercase">Title ({contentAudit.meta.titleLength} chars)</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-800">Truncated</span>
+            </div>
+            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.title}</p>
+            <p class="text-xs text-orange-600 mt-1">{contentAudit.meta.titleIssue}</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs font-bold text-gray-500 uppercase">Description ({contentAudit.meta.descriptionLength} chars)</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">Has typo</span>
+            </div>
+            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.description}</p>
+            <p class="text-xs text-red-600 mt-1">{contentAudit.meta.descriptionIssue}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schema -->
+      <div class="mt-6">
+        <h4 class="text-sm font-semibold text-gray-700 mb-3">Structured Data</h4>
+        <div class="flex flex-wrap gap-2 mb-2">
+          {contentAudit.schema.types.map(type => (
+            <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 font-mono">{type}</span>
+          ))}
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {contentAudit.schema.missing.map(type => (
+            <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-600 font-mono border border-red-200">+ {type}</span>
+          ))}
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Last modified: {contentAudit.schema.dateModified}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
   <!-- CORE WEB VITALS / LIGHTHOUSE -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Core Web Vitals & Performance</h3>
-      <p class="text-sm text-gray-600">Lighthouse lab data — no CrUX field data available (insufficient traffic)</p>
+      <h3 class="text-lg font-semibold text-gray-900">Core Web Vitals</h3>
+      <p class="text-sm text-gray-600">Lighthouse lab data (no CrUX field data available)</p>
     </div>
     <div class="p-6">
       <!-- Score cards -->
@@ -236,8 +409,7 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
         ))}
       </div>
 
-      <!-- CWV metrics table -->
-      <h4 class="text-sm font-semibold text-gray-700 mb-3">Core Web Vitals</h4>
+      <!-- CWV table -->
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
           <thead>
@@ -245,212 +417,51 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
               <th class="py-2 text-left">Metric</th>
               <th class="py-2 text-right">Mobile</th>
               <th class="py-2 text-right">Desktop</th>
-              <th class="py-2 text-left pl-4">Status</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
             <tr>
-              <td class="py-2 text-gray-700">LCP (Largest Contentful Paint)</td>
+              <td class="py-2 text-gray-700">LCP</td>
               <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.lcp}</td>
               <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.lcp}</td>
-              <td class="py-2 pl-4"><span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">Good</span></td>
             </tr>
             <tr>
-              <td class="py-2 text-gray-700">CLS (Cumulative Layout Shift)</td>
+              <td class="py-2 text-gray-700">CLS</td>
               <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.cls}</td>
               <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.cls}</td>
-              <td class="py-2 pl-4"><span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">Good</span></td>
             </tr>
             <tr>
-              <td class="py-2 text-gray-700">TBT (Total Blocking Time)</td>
+              <td class="py-2 text-gray-700">TBT</td>
               <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.tbt}</td>
               <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.tbt}</td>
-              <td class="py-2 pl-4"><span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">Good</span></td>
             </tr>
             <tr>
-              <td class="py-2 text-gray-700">TTFB (Time to First Byte)</td>
+              <td class="py-2 text-gray-700">TTFB</td>
               <td class="py-2 text-right font-medium text-orange-600">{lighthouse.mobile.metrics.ttfb}</td>
               <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.ttfb}</td>
-              <td class="py-2 pl-4"><span class="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-800">Slow (mobile)</span></td>
-            </tr>
-            <tr>
-              <td class="py-2 text-gray-700">FCP (First Contentful Paint)</td>
-              <td class="py-2 text-right font-medium">{lighthouse.mobile.metrics.fcp}</td>
-              <td class="py-2 text-right font-medium">{lighthouse.desktop.metrics.fcp}</td>
-              <td class="py-2 pl-4"><span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-800">Good</span></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Lighthouse issues -->
       {lighthouse.issues.length > 0 && (
-        <div class="mt-6">
-          <h4 class="text-sm font-semibold text-gray-700 mb-3">Lighthouse Audit Findings</h4>
-          <div class="space-y-2">
-            {lighthouse.issues.map(item => (
-              <div class={`flex items-start p-3 rounded-lg border ${
-                item.severity === 'fail' ? 'bg-red-50 border-red-100' :
-                item.severity === 'warning' ? 'bg-orange-50 border-orange-100' :
-                'bg-gray-50 border-gray-100'
-              }`}>
-                <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mr-3 mt-0.5 ${
-                  item.severity === 'fail' ? 'bg-red-200 text-red-800' :
-                  item.severity === 'warning' ? 'bg-orange-200 text-orange-800' :
-                  'bg-gray-200 text-gray-700'
-                }`}>{item.category}</span>
-                <p class="text-sm text-gray-800">{item.issue}</p>
-              </div>
-            ))}
-          </div>
+        <div class="mt-6 space-y-2">
+          {lighthouse.issues.map(item => (
+            <div class={`flex items-start p-3 rounded-lg border ${
+              item.severity === 'fail' ? 'bg-red-50 border-red-100' :
+              item.severity === 'warning' ? 'bg-orange-50 border-orange-100' :
+              'bg-gray-50 border-gray-100'
+            }`}>
+              <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mr-3 mt-0.5 ${
+                item.severity === 'fail' ? 'bg-red-200 text-red-800' :
+                item.severity === 'warning' ? 'bg-orange-200 text-orange-800' :
+                'bg-gray-200 text-gray-700'
+              }`}>{item.category}</span>
+              <p class="text-sm text-gray-800">{item.issue}</p>
+            </div>
+          ))}
         </div>
       )}
-    </div>
-  </div>
-
-  <!-- ============================================ -->
-  <!-- CONTENT AUDIT -->
-  <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm mb-8">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900">Content Audit</h3>
-      <p class="text-sm text-gray-600">Analysis from {page.archiveSource}</p>
-    </div>
-    <div class="p-6">
-      <!-- Word count -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-          <p class="text-3xl font-bold text-red-700">~{contentAudit.wordCount}</p>
-          <p class="text-sm text-red-600">Words of editorial content</p>
-          <p class="text-xs text-red-500 mt-1">Critically thin for YMYL</p>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <p class="text-3xl font-bold text-gray-900">{contentAudit.headings.length}</p>
-          <p class="text-sm text-gray-600">Headings total</p>
-          <p class="text-xs text-gray-500 mt-1">H1 → H4 (broken hierarchy)</p>
-        </div>
-        <div class="text-center p-4 bg-gray-50 rounded-lg">
-          <p class="text-3xl font-bold text-gray-900">{contentAudit.internalLinks.total}</p>
-          <p class="text-sm text-gray-600">Internal links</p>
-          <p class="text-xs text-gray-500 mt-1">{contentAudit.internalLinks.mainContent.length} in main content</p>
-        </div>
-      </div>
-
-      <!-- Heading structure -->
-      <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Heading Structure</h4>
-        <div class="bg-gray-50 rounded-lg p-4 font-mono text-sm space-y-1">
-          {contentAudit.headings.map(h => (
-            <div class="flex items-start">
-              <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold mr-3 ${
-                h.tag === 'H1' ? 'bg-purple-100 text-purple-800' :
-                h.tag === 'H2' ? 'bg-blue-100 text-blue-800' :
-                'bg-orange-100 text-orange-800'
-              }`}>{h.tag}</span>
-              <span class="text-gray-800">{h.text}</span>
-            </div>
-          ))}
-        </div>
-        <p class="text-xs text-red-600 mt-2">{contentAudit.headingIssue}</p>
-      </div>
-
-      <!-- Meta tags -->
-      <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Meta Tags</h4>
-        <div class="space-y-3">
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-gray-500 uppercase">Title ({contentAudit.meta.titleLength} chars)</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-orange-100 text-orange-800">Over limit</span>
-            </div>
-            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.title}</p>
-            <p class="text-xs text-orange-600 mt-1">{contentAudit.meta.titleIssue}</p>
-          </div>
-          <div class="bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-1">
-              <span class="text-xs font-bold text-gray-500 uppercase">Description ({contentAudit.meta.descriptionLength} chars)</span>
-              <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">Has typo</span>
-            </div>
-            <p class="text-sm text-gray-800 font-mono break-all">{contentAudit.meta.description}</p>
-            <p class="text-xs text-red-600 mt-1">{contentAudit.meta.descriptionIssue}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Images -->
-      <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Images ({contentAudit.images.length})</h4>
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-xs font-medium text-gray-500 uppercase border-b border-gray-100">
-                <th class="py-2 text-left">Image</th>
-                <th class="py-2 text-left">Alt Text</th>
-                <th class="py-2 text-left">Status</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-50">
-              {contentAudit.images.map(img => (
-                <tr>
-                  <td class="py-2 text-gray-700">{img.description}</td>
-                  <td class="py-2 text-gray-500 font-mono">{img.alt || '(empty)'}</td>
-                  <td class="py-2">
-                    <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-800">Missing</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Internal links from main content -->
-      <div class="mb-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Main Content Links</h4>
-        <div class="space-y-2">
-          {contentAudit.internalLinks.mainContent.map(link => (
-            <div class="flex items-center p-2 bg-gray-50 rounded">
-              <span class="text-sm text-gray-800 flex-1">{link.text}</span>
-              <span class="text-xs text-gray-500 font-mono">{link.url}</span>
-            </div>
-          ))}
-        </div>
-        {contentAudit.internalLinks.potentialCannibalization && (
-          <div class="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p class="text-xs text-amber-800"><strong>Potential issue:</strong> {contentAudit.internalLinks.potentialCannibalization}</p>
-          </div>
-        )}
-      </div>
-
-      <!-- External links -->
-      <div>
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">External Links ({contentAudit.externalLinks.total})</h4>
-        <div class="space-y-2">
-          {contentAudit.externalLinks.links.map(link => (
-            <div class="flex items-center p-2 bg-gray-50 rounded">
-              <span class="text-sm text-gray-800">{link.text}</span>
-              <span class="text-xs text-gray-500 ml-auto font-mono">{link.url}</span>
-            </div>
-          ))}
-        </div>
-        <p class="text-xs text-red-600 mt-2">{contentAudit.externalLinks.issue}</p>
-      </div>
-
-      <!-- Schema -->
-      <div class="mt-6">
-        <h4 class="text-sm font-semibold text-gray-700 mb-3">Structured Data (Schema.org)</h4>
-        <div class="flex flex-wrap gap-2 mb-2">
-          {contentAudit.schema.types.map(type => (
-            <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 font-mono">{type}</span>
-          ))}
-        </div>
-        <div class="flex flex-wrap gap-2">
-          {contentAudit.schema.missing.map(type => (
-            <span class="text-xs px-2 py-1 rounded bg-red-50 text-red-600 font-mono border border-red-200">+ {type} (missing)</span>
-          ))}
-        </div>
-        <p class="text-xs text-gray-500 mt-2">Last modified: {contentAudit.schema.dateModified} (over 3 years ago)</p>
-      </div>
     </div>
   </div>
 
@@ -460,97 +471,91 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   <div class="bg-white rounded-lg shadow-sm mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-900">Issues & Recommendations ({issues.length})</h3>
-      <p class="text-sm text-gray-600">Page-specific issues sorted by priority</p>
+      <p class="text-sm text-gray-600">Page-specific issues only — site-wide issues are on the dashboard</p>
     </div>
-    <div class="p-6 space-y-3">
-      {/* Critical */}
+    <div class="p-6 space-y-4">
       {criticalIssues.length > 0 && (
-        <div class="mb-4">
+        <div>
           <h4 class="text-xs font-bold text-red-700 uppercase tracking-wider mb-2 flex items-center">
             <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
             Critical ({criticalIssues.length})
           </h4>
-          {criticalIssues.map(item => (
-            <div class="p-4 bg-red-50 border border-red-200 rounded-lg mb-2">
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <span class="text-xs font-bold text-red-600 uppercase">{item.category}</span>
-                  <p class="text-sm text-red-900 font-medium mt-1">{item.issue}</p>
-                  <p class="text-sm text-red-800 mt-2">{item.recommendation}</p>
-                </div>
+          <div class="space-y-2">
+            {criticalIssues.map(item => (
+              <div class="p-4 bg-red-50 border border-red-200 rounded-lg">
+                <span class="text-xs font-bold text-red-600 uppercase">{item.category}</span>
+                <p class="text-sm text-red-900 font-medium mt-1">{item.issue}</p>
+                <p class="text-sm text-red-800 mt-2">{item.recommendation}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {/* High */}
       {highIssues.length > 0 && (
-        <div class="mb-4">
+        <div>
           <h4 class="text-xs font-bold text-orange-700 uppercase tracking-wider mb-2 flex items-center">
             <span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
             High ({highIssues.length})
           </h4>
-          {highIssues.map(item => (
-            <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg mb-2">
-              <div class="flex-1">
+          <div class="space-y-2">
+            {highIssues.map(item => (
+              <div class="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                 <span class="text-xs font-bold text-orange-600 uppercase">{item.category}</span>
                 <p class="text-sm text-orange-900 font-medium mt-1">{item.issue}</p>
                 {item.current && <p class="text-xs text-orange-700 font-mono mt-1 break-all">Current: {item.current}</p>}
                 <p class="text-sm text-orange-800 mt-2">{item.recommendation}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Medium */}
       {mediumIssues.length > 0 && (
-        <div class="mb-4">
+        <div>
           <h4 class="text-xs font-bold text-blue-700 uppercase tracking-wider mb-2 flex items-center">
             <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
             Medium ({mediumIssues.length})
           </h4>
-          {mediumIssues.map(item => (
-            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-2">
-              <div class="flex-1">
+          <div class="space-y-2">
+            {mediumIssues.map(item => (
+              <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <span class="text-xs font-bold text-blue-600 uppercase">{item.category}</span>
                 <p class="text-sm text-blue-900 font-medium mt-1">{item.issue}</p>
                 <p class="text-sm text-blue-800 mt-2">{item.recommendation}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
-      {/* Low / Info */}
       {otherIssues.length > 0 && (
         <div>
           <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center">
             <span class="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
             Low / Info ({otherIssues.length})
           </h4>
-          {otherIssues.map(item => (
-            <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg mb-2">
-              <div class="flex-1">
+          <div class="space-y-2">
+            {otherIssues.map(item => (
+              <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                 <span class="text-xs font-bold text-gray-500 uppercase">{item.category}</span>
                 <p class="text-sm text-gray-800 font-medium mt-1">{item.issue}</p>
                 <p class="text-sm text-gray-700 mt-2">{item.recommendation}</p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>
   </div>
 
   <!-- ============================================ -->
-  <!-- REPORT ADEQUACY ASSESSMENT -->
+  <!-- REPORT ASSESSMENT -->
   <!-- ============================================ -->
   <div class="bg-gray-50 rounded-lg border border-gray-200 mb-8">
     <div class="px-6 py-4 border-b border-gray-200">
       <h3 class="text-lg font-semibold text-gray-700">Report Assessment</h3>
-      <p class="text-sm text-gray-500">What this report covers and what needs deeper investigation</p>
+      <p class="text-sm text-gray-500">Data coverage and known gaps</p>
     </div>
     <div class="p-6">
       <div class="mb-4">
@@ -558,7 +563,7 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
         <p class="text-sm text-gray-700">{adequacyAssessment.whatWeHave}</p>
       </div>
       <div>
-        <h4 class="text-sm font-semibold text-orange-700 mb-2">Gaps that need deeper audit</h4>
+        <h4 class="text-sm font-semibold text-orange-700 mb-2">Gaps requiring deeper audit</h4>
         <ul class="space-y-2">
           {adequacyAssessment.whatsMissing.map(gap => (
             <li class="flex items-start text-sm text-gray-700">
@@ -575,8 +580,6 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
   </div>
 
   <div class="text-center py-4">
-    <a href="/cs/" class="text-sm text-blue-600 hover:text-blue-800">
-      &larr; Back to Dashboard
-    </a>
+    <a href="/cs/" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to Dashboard</a>
   </div>
 </Layout>

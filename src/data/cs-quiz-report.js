@@ -1,5 +1,5 @@
 // Per-page report: Compulsion Solutions — Hypersexuality Quiz
-// All data from GSC API + Lighthouse CLI + Wayback Machine content audit
+// Data sources: GSC API, Lighthouse CLI, Wayback Machine archive, Semrush SERP data
 // Generated: 2026-02-20
 
 export const quizReport = {
@@ -11,12 +11,52 @@ export const quizReport = {
     archiveSource: "Wayback Machine (May 2024)"
   },
 
+  // What's working — lead with strength
+  strength: {
+    headline: "Ranking page 1 with zero content",
+    detail: "This page ranks position 6-8 for keywords with 2,900+ combined monthly search volume — and the content area contains nothing but 3 navigation buttons. The domain authority and URL/title targeting alone are carrying this page. Adding any substantive content has outsized upside.",
+    kd: "12-17 (low competition — positions 1-3 are achievable with on-page improvements alone)"
+  },
+
   gsc: {
     clicks: 161,
     impressions: 6112,
     ctr: 2.63,
     position: 7.9,
     dateRange: "Jan 23 – Feb 19, 2026"
+  },
+
+  // SERP feature landscape — explains CTR and impression behavior
+  serpFeatures: {
+    summary: "Organic real estate is heavily compressed. Position 6 is visually much lower on the page due to ads, PAA boxes, and forum content.",
+    keywords: [
+      {
+        query: "hypersexuality test",
+        volume: 1900,
+        position: 6,
+        kd: 17,
+        features: ["People also ask", "Discussions and forums", "Related searches", "Ads top", "Ads bottom"],
+        note: "Ads top + bottom + PAA push organic position 6 to ~visual position 10+. 'Discussions and forums' = Google wants experiential content."
+      },
+      {
+        query: "hypersexual test",
+        volume: 1000,
+        position: 6,
+        kd: 12,
+        features: ["Image", "People also ask", "Related searches"],
+        note: "Image pack + PAA compressing organic space. KD 12 = very achievable."
+      },
+      {
+        query: "adhd hypersexuality test",
+        volume: 70,
+        position: null,
+        kd: null,
+        features: ["Sitelinks", "AI Overview", "People also ask", "Related searches"],
+        note: "AI Overview present — if this rolls out to main keywords, it would explain impression drops independent of ranking changes."
+      }
+    ],
+    ctrContext: "The 2.77% CTR at position 7.7 is reasonable given how compressed the organic space is. This is not a CTR problem — it's a SERP real estate problem.",
+    crashTheory: "If Google expanded SERP features (AI Overview, larger PAA, more forum content) around Feb 8, that alone could cause the 50% impression drop without any ranking change. GSC data confirms position only shifted 1-2 points while impressions collapsed — consistent with a SERP layout change, not a quality demotion."
   },
 
   keywords: [
@@ -137,33 +177,53 @@ export const quizReport = {
       }
     },
     issues: [
-      { category: "performance", issue: "Server response time (TTFB) 930ms on mobile — threshold is 600ms", severity: "warning" },
-      { category: "performance", issue: "Font display blocks rendering for up to 1.4s on mobile — needs font-display: swap", severity: "warning" },
-      { category: "performance", issue: "Unused JavaScript: Facebook Pixel (43 KiB) + Google Tag Manager (61 KiB)", severity: "info" },
-      { category: "accessibility", issue: "Color contrast insufficient on form labels (.gfield_label)", severity: "fail" },
-      { category: "accessibility", issue: "Heading elements not in sequential order (H1 → H4, skipping H2/H3)", severity: "fail" },
-      { category: "accessibility", issue: "No main landmark (<main> element missing)", severity: "fail" },
-      { category: "accessibility", issue: "Link without discernible name (logo link to /)", severity: "fail" },
+      { category: "performance", issue: "TTFB 930ms on mobile (threshold: 600ms) — server response time", severity: "warning" },
+      { category: "performance", issue: "Font display blocks rendering for up to 1.4s on mobile", severity: "warning" },
+      { category: "performance", issue: "Unused JavaScript: Facebook Pixel (43 KiB) + GTM (61 KiB)", severity: "info" },
+      { category: "accessibility", issue: "Color contrast insufficient on Gravity Forms labels", severity: "fail" },
     ]
   },
 
   contentAudit: {
-    wordCount: 55,
-    wordCountNote: "Only ~55 words of actual editorial content. Essentially a navigation hub with 3 quiz buttons. Critically thin for YMYL health content.",
-    headings: [
-      { tag: "H1", text: "Sex and Porn Addiction Quizzes" },
-      { tag: "H4", text: "Are sexually compulsive behaviors impacting your life? Take the quiz that's right for you:" }
+    // Content area = what's inside the WordPress content editor, NOT template
+    wordCount: 0,
+    wordCountNote: "The content area contains zero editorial content. The page is 3 navigation buttons linking to sub-quizzes, preceded by a one-sentence subtitle. All other text (menus, sidebar, footer) is site template — not page content.",
+    contentAreaElements: [
+      { type: "H1", text: "Sex and Porn Addiction Quizzes" },
+      { type: "subtitle (H4)", text: "Are sexually compulsive behaviors impacting your life? Take the quiz that's right for you:" },
+      { type: "button", text: "Are you a porn or sex addict? (For Men)", linksTo: "/mens-quiz-for-porn-addiction/" },
+      { type: "button", text: "Are you a porn or sex addict? (For Women)", linksTo: "/womens-quiz-for-sexually-compulsive-behavior/" },
+      { type: "button", text: "Is my partner a porn or sex addict?", linksTo: "/is-my-partner-a-sex-addict-20-questions/" },
     ],
-    headingIssue: "Only 2 headings. Jumps H1 → H4, skipping H2 and H3. The H4 should be an H2 or a <p> tag.",
-    images: [
-      { src: "/wp-content/uploads/2020/08/logo-updated.png", alt: "", description: "Header logo" },
-      { src: "/wp-content/uploads/2019/06/booklarge2.png", alt: "", description: "Book cover" },
-      { src: "/wp-content/uploads/2020/08/white-logo.png", alt: "", description: "Footer logo" }
-    ],
+    imagesInContent: 0,
+    imagesInContentNote: "All 3 images on the page (header logo, book cover, footer logo) are template elements that appear site-wide. No images exist in the content area. Template image alt text is a site-wide fix, not page-specific.",
+    internalLinks: {
+      contextual: 0,
+      contextualNote: "Zero contextual/editorial links. The 3 buttons are functional navigation, not editorial links within content.",
+      functional: 3,
+      functionalLinks: [
+        { text: "Are you a porn or sex addict? (For Men)", url: "/mens-quiz-for-porn-addiction/" },
+        { text: "Are you a porn or sex addict? (For Women)", url: "/womens-quiz-for-sexually-compulsive-behavior/" },
+        { text: "Is my partner a porn or sex addict?", url: "/is-my-partner-a-sex-addict-20-questions/" }
+      ],
+      template: 30,
+      templateNote: "30 links in header nav, footer nav, sidebar, and footer widgets. These are site-wide template elements with low per-page SEO value.",
+      inbound: "Unknown — requires site crawl. This is the most important internal linking metric for this page (34% of site traffic) but we haven't measured it yet.",
+      potentialCannibalization: "Nav links to /am-i-addicted-men/ and /am-i-addicted-women/ but buttons link to /mens-quiz-for-porn-addiction/ and /womens-quiz-for-sexually-compulsive-behavior/ — if these are separate pages, they may cannibalize each other."
+    },
+    externalLinks: {
+      inContent: 0,
+      template: 2,
+      templateLinks: [
+        { text: "Facebook", url: "https://www.facebook.com/CompulsionSolutions" },
+        { text: "Twitter", url: "https://twitter.com/porndoc" }
+      ],
+      note: "Zero external links in content area. The 2 social links are in the footer template. For YMYL health content, contextual outbound links to medical/scientific sources would strengthen E-E-A-T."
+    },
     meta: {
       title: "Hypersexuality Test - Find Out If You Have A Sex Or Porn Addiction | Neulia Compulsion Solutions",
       titleLength: 87,
-      titleIssue: "87 chars — truncated at ~60 in Google results. Also mismatches the H1 ('Sex and Porn Addiction Quizzes').",
+      titleIssue: "87 chars — truncated at ~60 in Google results. Also mismatches H1 ('Sex and Porn Addiction Quizzes').",
       description: "Neulia Compulsion Solutions created a hypersexualtiy test that helps people who are unsure whether or not they have a sex or porn addiction get the answers they need to move forward. Take the test here.",
       descriptionLength: 201,
       descriptionIssue: "Contains typo 'hypersexualtiy'. 201 chars — over 160-char best practice.",
@@ -177,111 +237,76 @@ export const quizReport = {
       datePublished: "2020-01-04",
       dateModified: "2022-04-26",
       missing: ["Person", "Book", "MedicalWebPage", "Quiz", "Organization"]
-    },
-    internalLinks: {
-      total: 33,
-      mainContent: [
-        { text: "Are you a porn or sex addict? (For Men)", url: "/mens-quiz-for-porn-addiction/" },
-        { text: "Are you a porn or sex addict? (For Women)", url: "/womens-quiz-for-sexually-compulsive-behavior/" },
-        { text: "Is my partner a porn or sex addict?", url: "/is-my-partner-a-sex-addict-20-questions/" }
-      ],
-      potentialCannibalization: "Nav links to /am-i-addicted-men/ and /am-i-addicted-women/ but main content links to /mens-quiz-for-porn-addiction/ and /womens-quiz-for-sexually-compulsive-behavior/ — possible competing pages for same intent."
-    },
-    externalLinks: {
-      total: 2,
-      links: [
-        { text: "Facebook", url: "https://www.facebook.com/CompulsionSolutions" },
-        { text: "Twitter", url: "https://twitter.com/porndoc" }
-      ],
-      issue: "Zero outbound links to authoritative medical/scientific sources — major E-E-A-T gap for YMYL health content."
     }
   },
 
+  // Issues scoped to THIS page only. Site-wide issues (template alt text, nav structure) are on the dashboard.
   issues: [
     {
       severity: "critical",
       category: "Content",
-      issue: "Only ~55 words of editorial content — critically thin for a YMYL health page ranking for 47 keywords",
-      recommendation: "Add 500-800 words of expert content: what the quizzes measure, what conditions they assess, what validated instruments they're based on, and what results mean. Include author attribution."
-    },
-    {
-      severity: "critical",
-      category: "E-E-A-T",
-      issue: "No author attribution, credentials, or expertise signals anywhere in the content area",
-      recommendation: "Add author byline with 'George Collins, MA' linked to a dedicated author page. Add a brief expert context paragraph."
+      issue: "Zero editorial content — the content area is 3 navigation buttons with no supporting text",
+      recommendation: "Add 500-800 words of expert content above the quiz buttons: what the quizzes measure, who they're for, what hypersexuality/compulsive behavior means, what results indicate, and when to seek professional help. This page ranks position 6 with nothing — adding substance should have outsized impact."
     },
     {
       severity: "critical",
       category: "YMYL",
-      issue: "No medical disclaimer or 'seek professional help' guidance on a mental health assessment page",
-      recommendation: "Add disclaimer: 'This self-assessment is not a clinical diagnosis. If you're concerned about compulsive sexual behavior, consult a licensed mental health professional.'"
+      issue: "No medical disclaimer on a mental health self-assessment page",
+      recommendation: "Add a clear disclaimer: 'These self-assessments are not clinical diagnoses. If you're concerned about compulsive sexual behavior, please consult a licensed mental health professional.' This is a YMYL compliance requirement."
+    },
+    {
+      severity: "critical",
+      category: "E-E-A-T",
+      issue: "No author attribution or credentials anywhere in the content area",
+      recommendation: "Add 'By George Collins, MA — Author of Breaking the Cycle' with a link to a dedicated author page. For YMYL health content, visible expert authorship is a ranking signal."
     },
     {
       severity: "high",
       category: "Meta",
-      issue: "Title tag is 87 characters (truncated at ~60) and mismatches the H1",
+      issue: "Title tag is 87 characters — truncated in Google results at ~60",
       current: "Hypersexuality Test - Find Out If You Have A Sex Or Porn Addiction | Neulia Compulsion Solutions",
-      recommendation: "Shorten to ~55 chars and align with H1. Example: 'Hypersexuality Test — Free Self-Assessment Quiz'"
+      recommendation: "Shorten to ~55 chars. Focus on the primary keyword. Example: 'Hypersexuality Test — Free Self-Assessment Quiz'"
     },
     {
       severity: "high",
       category: "Meta",
       issue: "Meta description contains typo 'hypersexualtiy' and is 201 chars (over 160 limit)",
-      recommendation: "Fix spelling and shorten. Focus on user intent: what the quiz does and who it's for."
-    },
-    {
-      severity: "high",
-      category: "Structure",
-      issue: "Heading hierarchy broken — jumps from H1 directly to H4, no H2 tags on the page",
-      recommendation: "Restructure with proper H2 sections. The H4 subtitle should become an H2 or introductory paragraph."
-    },
-    {
-      severity: "medium",
-      category: "Images",
-      issue: "All 3 images have empty alt attributes (header logo, book cover, footer logo)",
-      recommendation: "Add descriptive alt text. Book cover should be: 'Breaking the Cycle book cover by George Collins'"
+      recommendation: "Fix the typo and shorten. Lead with user intent: what the quiz does and who it's for."
     },
     {
       severity: "medium",
       category: "Performance",
       issue: "TTFB is 930ms on mobile (threshold: 600ms)",
-      recommendation: "Server response time issue — likely hosting or WordPress configuration. Consider server-side caching."
-    },
-    {
-      severity: "medium",
-      category: "Accessibility",
-      issue: "Form label color contrast fails WCAG AA 4.5:1 ratio",
-      recommendation: "Darken the form label text color to meet contrast requirements."
+      recommendation: "Server-side caching or hosting optimization. This affects all pages, not just this one."
     },
     {
       severity: "medium",
       category: "Schema",
-      issue: "No og:image defined — social shares have no preview image",
-      recommendation: "Add an og:image meta tag with a relevant preview image (e.g., the book cover or a branded quiz graphic)."
+      issue: "No og:image — social shares have no preview image",
+      recommendation: "Add an og:image meta tag (branded quiz graphic or book cover)."
     },
     {
       severity: "low",
       category: "URL",
       issue: "URL slug misspells 'quizzes' as 'quizes'",
-      recommendation: "Low priority since the page already ranks. A 301 redirect from the old URL to a corrected one would be ideal but carries risk."
+      recommendation: "Low priority — page already ranks. A 301 redirect carries risk for a page that's already performing."
     },
     {
       severity: "info",
       category: "Cannibalization",
-      issue: "Navigation links to /am-i-addicted-men/ and /am-i-addicted-women/ while content links to different quiz URLs — possible competing pages",
-      recommendation: "Audit whether these are separate pages or redirects. If separate, consolidate or differentiate their keyword targets."
+      issue: "Nav links to /am-i-addicted-men/ and /am-i-addicted-women/ but buttons link to different quiz URLs",
+      recommendation: "Audit whether these are separate pages or redirects. If separate, they may be cannibalizing each other."
     }
   ],
 
   adequacyAssessment: {
-    whatWeHave: "GSC keyword data (47 queries), Lighthouse scores (performance/SEO/accessibility), full content audit from Wayback archive, heading structure, internal/external link inventory, meta tag analysis, schema inspection, image audit.",
+    whatWeHave: "GSC keyword data (47 queries), Semrush SERP feature landscape (top 3 keywords), daily time series showing the impression crash, Lighthouse scores (mobile + desktop), content area audit from Wayback archive (correctly scoped to CMS content only), meta tag analysis, schema inspection.",
     whatsMissing: [
-      "Internal linking audit — which other pages on the site SHOULD link to this quiz page but don't? We audited links FROM this page but not links TO this page from elsewhere on the site.",
-      "Competitor content analysis — what do competing hypersexuality quiz pages look like? How much content do they have? What schema do they use? (Blocked by Cloudflare from Hetzner.)",
-      "Real user Core Web Vitals (CrUX) — Lighthouse is lab data. CrUX field data would show real-user experience but this site lacks sufficient traffic for CrUX.",
-      "Backlink profile — how many external sites link to this page? What anchor text? (Would need Ahrefs/Moz API.)",
-      "Click-through rate by position — are there SERP features (People Also Ask, featured snippets) stealing clicks at this position?"
+      "Inbound internal links — which pages on the site link TO this quiz page within their content? This is the most important internal linking metric for a page driving 34% of site traffic, and we haven't measured it. Requires a site crawl.",
+      "Competitor content comparison — what do the pages ranking positions 1-5 look like? How much content do they have? What schema? (Blocked by Cloudflare from Hetzner — need residential proxy.)",
+      "SERP feature timeline — did Google add/expand AI Overview or forum content around Feb 8? Would confirm whether the impression crash is SERP-driven or quality-driven.",
+      "Backlink profile — external links pointing to this page (needs Ahrefs/Moz API).",
     ],
-    verdict: "This report is solid for on-page SEO. The biggest gap is the internal linking audit — we know what this page links TO, but not what links TO it. For a page this important (34% of site traffic), the internal link equity flowing into it matters significantly. A deeper site crawl would reveal orphaned or under-linked pages."
+    verdict: "This report accurately covers what's on the page and how it performs in search. The biggest open question is the impression crash cause: is it a SERP layout change (AI Overview/PAA expansion) or a YMYL quality signal? Both are plausible. The YMYL fixes are worth doing regardless because they strengthen the page independent of the crash cause. The inbound internal link audit is the most important missing piece for a complete optimization plan."
   }
 };
