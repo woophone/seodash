@@ -4,16 +4,20 @@ import DashboardCard from '../../components/DashboardCard.astro';
 import DashboardModal from '../../components/DashboardModal.astro';
 import { clientData } from '../../data/compulsionsolutions-data.js';
 
-const { client, overview, pages, siteWideIssues, considerations, actionPlan } = clientData;
+const { client, overview, pages, siteWideIssues, considerations, actionPlan, ymylEeat, adminChecklist } = clientData;
 
 const page1Pages = pages.filter(p => p.status === 'page-1' || p.status === 'page-1-edge');
 const page2Pages = pages.filter(p => p.status === 'page-2');
 
+const totalChecklistItems = adminChecklist.groups.reduce((sum, g) => sum + g.items.length, 0);
+
 // Icons (heroicons mini, 20x20)
 const iconRankings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zm6-4a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zm6-3a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>';
+const iconYmyl = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
 const iconIssues = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944zM11 14a1 1 0 11-2 0 1 1 0 012 0zm0-7a1 1 0 10-2 0v3a1 1 0 102 0V7z" clip-rule="evenodd"></path></svg>';
 const iconFindings = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path></svg>';
 const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>';
+const iconChecklist = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
 ---
 
 <Layout title={`${client.name} - SEO Dashboard`}>
@@ -73,6 +77,10 @@ const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
       <p>{overview.pagesOnPage1} on page 1, {overview.pagesOnPage2} on page 2 — sorted by traffic</p>
     </DashboardCard>
 
+    <DashboardCard id="ymyl-eeat" title="YMYL & E-E-A-T" icon={iconYmyl} color="purple" badge={`${ymylEeat.chain.filter(c => c.status === 'broken').length} broken links`}>
+      <p>Author authority chain is disconnected — {ymylEeat.signals.filter(s => s.status === 'missing').length} trust signals missing site-wide</p>
+    </DashboardCard>
+
     <DashboardCard id="issues" title="What's Holding You Back" icon={iconIssues} color="red" badge={`${siteWideIssues.critical.length} critical`}>
       <p>{siteWideIssues.critical.length} critical YMYL trust gaps affecting all pages</p>
     </DashboardCard>
@@ -85,6 +93,10 @@ const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
 
     <DashboardCard id="plan" title="Action Plan" icon={iconPlan} color="green">
       <p>{actionPlan.phases.length}-phase roadmap — starting week 1</p>
+    </DashboardCard>
+
+    <DashboardCard id="checklist" title="Implementation Checklist" icon={iconChecklist} color="slate" adminOnly={true} badge={`${totalChecklistItems} tasks`}>
+      <p>{adminChecklist.groups[0].items.length} quick fixes, {adminChecklist.groups[1].items.length} template changes, {adminChecklist.groups[2].items.length} content tasks</p>
     </DashboardCard>
   </div>
 
@@ -404,4 +416,137 @@ const iconPlan = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><
       ))}
     </div>
   </DashboardModal>
+
+  <!-- YMYL & E-E-A-T System Modal -->
+  <DashboardModal id="ymyl-eeat" title="YMYL & E-E-A-T System" subtitle="How trust signals, author authority, and schema connect across the site">
+    <p class="text-sm text-gray-700 mb-6">{ymylEeat.summary}</p>
+
+    <!-- The Authority Chain -->
+    <h4 class="text-sm font-semibold text-gray-900 mb-3">The Authority Chain</h4>
+    <p class="text-xs text-gray-500 mb-3">Every link below must be connected for Google to verify expertise on this YMYL health site.</p>
+    <div class="space-y-2 mb-8">
+      {ymylEeat.chain.map(link => (
+        <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-lg">
+          <svg class="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">{link.from} → {link.to}</p>
+            <p class="text-xs text-red-700 mt-0.5">{link.detail}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- The Hub -->
+    <div class="bg-purple-50 border border-purple-200 rounded-lg p-5 mb-8">
+      <h4 class="text-sm font-semibold text-purple-900 mb-2">The Hub: {ymylEeat.authorHub.name}</h4>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Current state</p>
+          <p class="text-gray-700">{ymylEeat.authorHub.currentState}</p>
+          <p class="text-xs text-gray-400 font-mono mt-1">{ymylEeat.authorHub.currentPage}</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Target state</p>
+          <p class="text-gray-700">{ymylEeat.authorHub.targetState}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust Signals -->
+    <h4 class="text-sm font-semibold text-gray-900 mb-3">Trust Signals</h4>
+    <div class="space-y-2 mb-6">
+      {ymylEeat.signals.map(signal => (
+        <div class="flex items-start gap-3 p-3 rounded-lg border border-gray-200">
+          <span class={`text-xs font-bold uppercase px-1.5 py-0.5 rounded mt-0.5 flex-shrink-0 ${
+            signal.status === 'missing' ? 'bg-red-100 text-red-700' :
+            signal.status === 'hidden' ? 'bg-orange-100 text-orange-700' :
+            signal.status === 'stale' ? 'bg-amber-100 text-amber-700' :
+            signal.status === 'unused' ? 'bg-blue-100 text-blue-700' :
+            'bg-gray-100 text-gray-600'
+          }`}>{signal.status}</span>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-gray-900">{signal.name}</p>
+              <span class={`text-xs px-1.5 py-0.5 rounded ${signal.type === 'ymyl' ? 'bg-red-50 text-red-600' : 'bg-purple-50 text-purple-600'}`}>{signal.type === 'ymyl' ? 'YMYL' : 'E-E-A-T'}</span>
+            </div>
+            <p class="text-xs text-gray-600 mt-0.5">{signal.detail}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Why It Matters -->
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <h4 class="text-sm font-semibold text-gray-700 mb-2">Why This Matters</h4>
+      <p class="text-sm text-gray-700 leading-relaxed">{ymylEeat.whyItMatters}</p>
+    </div>
+  </DashboardModal>
+
+  <!-- Admin Checklist Modal -->
+  <div class="admin-only hidden">
+    <DashboardModal id="checklist" title="Implementation Checklist" subtitle={adminChecklist.summary} adminOnly={true}>
+      <div class="space-y-8">
+        {adminChecklist.groups.map(group => (
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class={`w-2 h-2 rounded-full ${
+                group.color === 'green' ? 'bg-green-500' :
+                group.color === 'blue' ? 'bg-blue-500' :
+                group.color === 'amber' ? 'bg-amber-500' :
+                'bg-red-500'
+              }`}></span>
+              <h4 class="text-sm font-semibold text-gray-900">{group.name}</h4>
+              <span class="text-xs text-gray-400">{group.description}</span>
+            </div>
+            <div class="space-y-2">
+              {group.items.map(item => (
+                <div class={`p-4 rounded-lg border ${
+                  group.color === 'green' ? 'bg-green-50 border-green-200' :
+                  group.color === 'blue' ? 'bg-blue-50 border-blue-200' :
+                  group.color === 'amber' ? 'bg-amber-50 border-amber-200' :
+                  'bg-red-50 border-red-200'
+                }`}>
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-2 flex-1">
+                      <span class={`mt-1 w-4 h-4 rounded border-2 flex-shrink-0 ${
+                        group.color === 'green' ? 'border-green-400' :
+                        group.color === 'blue' ? 'border-blue-400' :
+                        group.color === 'amber' ? 'border-amber-400' :
+                        'border-red-400'
+                      }`}></span>
+                      <div>
+                        <p class="text-sm font-medium text-gray-900">{item.task}</p>
+                        <p class="text-xs text-gray-600 mt-1 leading-relaxed">{item.detail}</p>
+                        {item.seeCard && (
+                          <p class="text-xs text-purple-600 mt-1.5 font-medium cursor-pointer" data-open-modal={item.seeCard}>
+                            → See {item.seeCard === 'ymyl-eeat' ? 'YMYL & E-E-A-T' : item.seeCard} card
+                          </p>
+                        )}
+                        {item.seeReport && (
+                          <p class="text-xs text-blue-600 mt-1.5">
+                            → {item.seeReport}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span class={`text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
+                        group.color === 'green' ? 'bg-green-200 text-green-800' :
+                        group.color === 'blue' ? 'bg-blue-200 text-blue-800' :
+                        group.color === 'amber' ? 'bg-amber-200 text-amber-800' :
+                        'bg-red-200 text-red-800'
+                      }`}>{item.effort}</span>
+                      {item.page && <span class="text-xs text-gray-400">{item.page}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </DashboardModal>
+  </div>
 </Layout>

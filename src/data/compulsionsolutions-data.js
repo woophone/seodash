@@ -295,6 +295,138 @@ export const clientData = {
     }
   ],
 
+  // YMYL & E-E-A-T system view — how trust signals, author authority, and schema connect
+  ymylEeat: {
+    summary: "This is a YMYL (Your Money or Your Life) health site. Google holds it to the highest trust standard. The authority exists — a published book with 1,234 cross-platform ratings — but none of it is connected or visible to Google's systems.",
+    // The authority chain — every link is currently broken
+    chain: [
+      { from: "Content Pages", to: "Author Byline", status: "broken", detail: "No author attribution on any content page" },
+      { from: "Author Byline", to: "Author Page", status: "broken", detail: "No dedicated author page exists — team listing wastes the opportunity" },
+      { from: "Author Page", to: "Person Schema", status: "broken", detail: "No Person schema anywhere on the site" },
+      { from: "Person Schema", to: "External Profiles", status: "broken", detail: "No sameAs links to Amazon, Goodreads, LinkedIn, publisher" },
+      { from: "Author Page", to: "Book Citation", status: "broken", detail: "Book referenced only as free chapter download, not as authority signal" },
+    ],
+    // Trust signals required for YMYL health content
+    signals: [
+      { name: "Medical Disclaimers", status: "missing", type: "ymyl", detail: "No disclaimer on any page — required for health content" },
+      { name: "Author Credentials", status: "hidden", type: "eeat", detail: "George Collins holds an MA but it appears nowhere on content pages" },
+      { name: "Professional Help Warnings", status: "missing", type: "ymyl", detail: "No 'consult a professional' guidance on assessment or advice pages" },
+      { name: "Person Schema + sameAs", status: "missing", type: "eeat", detail: "Google can't connect on-site author to published book author" },
+      { name: "Book Authority", status: "unused", type: "eeat", detail: "766 Amazon reviews + 468 Goodreads ratings — invisible to Google" },
+      { name: "Content Freshness", status: "stale", type: "ymyl", detail: "Quiz page last modified April 2022 — nearly 4 years stale" },
+      { name: "Author Bylines", status: "missing", type: "eeat", detail: "No 'By George Collins, MA' on any content page" },
+    ],
+    whyItMatters: "Google's quality raters evaluate YMYL health sites by investigating the content creator. Every broken link in the authority chain means a rater hits a dead end. The book and external profiles already establish expertise — they just need to be machine-readable and visible. Fixing this chain affects all 16 tracked pages simultaneously because it's a site-wide architecture change, not a per-page fix.",
+    authorHub: {
+      name: "George Collins, MA",
+      book: "Breaking the Cycle (New Harbinger Publications)",
+      currentPage: "/about-neulia/about-our-therapists-and-coaches/",
+      currentState: "Generic team listing — ranks #3 for his name but contains no authority evidence",
+      targetState: "Canonical author page with credential, book + publisher citation, review counts, external profile links, treatment philosophy",
+    }
+  },
+
+  // Admin-only implementation checklist — tactical quick wins
+  adminChecklist: {
+    summary: "On-site implementation tasks ordered by effort. No backlink work — everything here is within the site's control.",
+    groups: [
+      {
+        name: "Quick Fixes",
+        description: "5-15 minutes each — do these first",
+        color: "green",
+        items: [
+          {
+            task: "Fix quiz page meta description typo",
+            detail: "'hypersexualtiy' → 'hypersexuality' — this typo shows in Google search results. Fix in Yoast SEO → quiz page.",
+            effort: "5 min",
+            page: "Quiz page",
+          },
+          {
+            task: "Shorten quiz page title tag",
+            detail: "Currently 87 chars — truncated at ~60 in Google results. Shorten to ~55 chars focused on primary keyword.",
+            effort: "5 min",
+            page: "Quiz page",
+          },
+          {
+            task: "Add og:image to quiz page",
+            detail: "twitter:card is set to 'summary_large_image' but no image exists — social shares display broken. Add branded quiz graphic or book cover.",
+            effort: "15 min",
+            page: "Quiz page",
+          },
+        ]
+      },
+      {
+        name: "Template Changes",
+        description: "Implement once in Oxygen — applies to all pages site-wide",
+        color: "blue",
+        items: [
+          {
+            task: "Add medical disclaimers to all content pages",
+            detail: "Standard YMYL disclaimer: 'This content is for informational purposes only and is not a substitute for professional medical advice.' Oxygen template element, placed below content area.",
+            effort: "30 min",
+            page: "All pages",
+            seeCard: "ymyl-eeat",
+          },
+          {
+            task: "Add 'seek professional help' warnings to assessment pages",
+            detail: "'If you are concerned about compulsive sexual behavior, please consult a licensed mental health professional.' Oxygen template for quiz/assessment pages.",
+            effort: "30 min",
+            page: "Assessment pages",
+            seeCard: "ymyl-eeat",
+          },
+          {
+            task: "Add author byline to all content pages",
+            detail: "'By George Collins, MA — Author of Breaking the Cycle' with link to the author page (once created). Oxygen template element in post/page header.",
+            effort: "30 min",
+            page: "All content pages",
+            seeCard: "ymyl-eeat",
+          },
+          {
+            task: "Add Person + Book schema (JSON-LD) site-wide",
+            detail: "Person schema for George Collins on all content pages with sameAs links to Amazon author page, Goodreads, LinkedIn, New Harbinger. Book schema for 'Breaking the Cycle' with publisher and aggregateRating. Can be added via Yoast custom schema or manual JSON-LD in Oxygen head.",
+            effort: "1-2 hours",
+            page: "All content pages",
+            seeCard: "ymyl-eeat",
+          },
+        ]
+      },
+      {
+        name: "Content Creation",
+        description: "Significant effort but highest long-term impact",
+        color: "amber",
+        items: [
+          {
+            task: "Create canonical author page for George Collins, MA",
+            detail: "This is the E-E-A-T hub that everything else links to. Include: MA credential, 'Breaking the Cycle' (New Harbinger), Amazon review count (766), Goodreads rating count (468), links to external profiles, treatment philosophy. This page already has ranking momentum — the team listing ranks #3 for his name.",
+            effort: "2-3 hours",
+            page: "New page (or transform existing team page)",
+            seeCard: "ymyl-eeat",
+          },
+          {
+            task: "Add expert content to quiz page",
+            detail: "500-800 words of authoritative content above the quiz buttons. Cover what the assessments measure, who they're designed for, what results indicate, and when to seek professional help. This page ranks for 47 queries with zero content — adding substance has outsized upside. Use the page's ranked search queries as semantic guideposts for natural language, not as a keyword checklist.",
+            effort: "2-3 hours",
+            page: "Quiz page",
+            seeReport: "See the quiz page report Keywords card — 47 queries centered on 'hypersexuality test/quiz' show the searcher intent this content should address",
+          },
+        ]
+      },
+      {
+        name: "Needs Client Input",
+        description: "Blocked until confirmed with Ginger",
+        color: "red",
+        items: [
+          {
+            task: "Confirm George Collins authored/endorses the quiz assessments",
+            detail: "Before adding 'Developed by George Collins, MA' to the quiz page, verify with Ginger that he created or clinically endorses these self-assessments. This determines the author attribution approach for assessment pages specifically.",
+            effort: "Client question",
+            page: "Quiz page",
+          },
+        ]
+      }
+    ]
+  },
+
   actionPlan: {
     summary: "You have 10 pages already ranking on Google page 1 and 6 more on page 2. They're all missing the same basic trust signals. Adding these signals site-wide will improve visibility across all of them simultaneously.",
     phases: [
