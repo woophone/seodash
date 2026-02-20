@@ -395,43 +395,56 @@ const impressionOnlyKeywords = keywords.filter(k => k.clicks === 0);
     <div class="p-6">
       <!-- Score cards -->
       <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {[
-          { key: "performance", label: "Performance", mobile: lighthouse.mobile.performance, desktop: lighthouse.desktop.performance },
-          { key: "seo", label: "SEO", mobile: lighthouse.mobile.seo, desktop: lighthouse.desktop.seo },
-          { key: "accessibility", label: "Accessibility", mobile: lighthouse.mobile.accessibility, desktop: lighthouse.desktop.accessibility },
-        ].map(cat => (
-          <div class="border border-gray-200 rounded-lg p-4">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-semibold text-gray-700">{cat.label}</h4>
-              {cat.key === 'seo' && (
-                <button
-                  data-open-modal="seo-score-explainer"
-                  class="flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 cursor-pointer"
-                  title="What does this score actually mean?"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18 9 9 0 000-18z"></path>
-                  </svg>
-                  <span>Misleading?</span>
-                </button>
-              )}
+        <!-- Performance -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">Performance</h4>
+          <div class="flex justify-between items-center">
+            <div class="text-center">
+              <div class={`text-2xl font-bold ${lighthouse.mobile.performance >= 90 ? 'text-green-600' : lighthouse.mobile.performance >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.mobile.performance}</div>
+              <p class="text-xs text-gray-500">Mobile</p>
             </div>
-            <div class="flex justify-between items-center">
-              <div class="text-center">
-                <div class={`text-2xl font-bold ${cat.mobile >= 90 ? 'text-green-600' : cat.mobile >= 50 ? 'text-orange-500' : 'text-red-600'}`}>
-                  {cat.mobile}
-                </div>
-                <p class="text-xs text-gray-500">Mobile</p>
-              </div>
-              <div class="text-center">
-                <div class={`text-2xl font-bold ${cat.desktop >= 90 ? 'text-green-600' : cat.desktop >= 50 ? 'text-orange-500' : 'text-red-600'}`}>
-                  {cat.desktop}
-                </div>
-                <p class="text-xs text-gray-500">Desktop</p>
-              </div>
+            <div class="text-center">
+              <div class={`text-2xl font-bold ${lighthouse.desktop.performance >= 90 ? 'text-green-600' : lighthouse.desktop.performance >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.desktop.performance}</div>
+              <p class="text-xs text-gray-500">Desktop</p>
             </div>
           </div>
-        ))}
+        </div>
+
+        <!-- SEO — with warning treatment -->
+        <button data-open-modal="seo-score-explainer" class="border-2 border-amber-300 bg-amber-50 rounded-lg p-4 cursor-pointer hover:border-amber-400 hover:bg-amber-100/60 transition-colors text-left relative group">
+          <div class="flex items-center gap-1.5 mb-3">
+            <h4 class="text-sm font-semibold text-gray-700">SEO</h4>
+            <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+          <div class="flex justify-between items-center">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-amber-600">{lighthouse.mobile.seo}</div>
+              <p class="text-xs text-gray-500">Mobile</p>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-amber-600">{lighthouse.desktop.seo}</div>
+              <p class="text-xs text-gray-500">Desktop</p>
+            </div>
+          </div>
+          <p class="text-xs text-amber-700 mt-3 leading-tight">This score is misleading — tap to learn why</p>
+        </button>
+
+        <!-- Accessibility -->
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3">Accessibility</h4>
+          <div class="flex justify-between items-center">
+            <div class="text-center">
+              <div class={`text-2xl font-bold ${lighthouse.mobile.accessibility >= 90 ? 'text-green-600' : lighthouse.mobile.accessibility >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.mobile.accessibility}</div>
+              <p class="text-xs text-gray-500">Mobile</p>
+            </div>
+            <div class="text-center">
+              <div class={`text-2xl font-bold ${lighthouse.desktop.accessibility >= 90 ? 'text-green-600' : lighthouse.desktop.accessibility >= 50 ? 'text-orange-500' : 'text-red-600'}`}>{lighthouse.desktop.accessibility}</div>
+              <p class="text-xs text-gray-500">Desktop</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- SEO Score Explainer Modal -->
