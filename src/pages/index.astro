@@ -1,0 +1,153 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { clientsIndex } from '../data/clients-index.js';
+
+const { dashboard, clients } = clientsIndex;
+---
+
+<Layout title={dashboard.title}>
+  <!-- Dashboard Header -->
+  <div class="bg-white rounded-lg shadow-sm p-8 mb-8">
+    <div class="text-center">
+      <h2 class="text-4xl font-bold text-gray-900 mb-2">{dashboard.title}</h2>
+      <p class="text-xl text-gray-600 mb-4">{dashboard.subtitle}</p>
+      <div class="flex justify-center items-center space-x-4">
+        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+        <span class="text-sm text-gray-500">{dashboard.company}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Overview Cards -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-2xl font-semibold text-gray-900">Client Dashboards</h3>
+      <div class="flex items-center space-x-2">
+        <span class="text-sm text-gray-600">Total Active Clients:</span>
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+          {clients.length}
+        </span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {clients.map((client) => (
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+          <div class="p-6">
+            <!-- Client Header -->
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h4 class="text-xl font-semibold text-gray-900">{client.name}</h4>
+                <p class="text-sm text-gray-600">{client.domain}</p>
+                <p class="text-xs text-gray-500 mt-1">{client.industry}</p>
+              </div>
+              <div class="flex flex-col items-end">
+                <span class={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                  client.status === 'urgent' ? 'bg-red-100 text-red-800' :
+                  client.status === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  <span class="w-1.5 h-1.5 rounded-full mr-1 bg-current"></span>
+                  {client.status.toUpperCase()}
+                </span>
+                <span class="text-xs text-gray-500 mt-1">{client.lastAnalysis}</span>
+              </div>
+            </div>
+
+            <!-- Client Description -->
+            <p class="text-sm text-gray-700 mb-4">{client.description}</p>
+
+            <!-- Key Metrics -->
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div class="text-center p-2 bg-gray-50 rounded">
+                <p class="text-lg font-semibold text-gray-900">{client.metrics.monthlyClicks}</p>
+                <p class="text-xs text-gray-600">Current Clicks</p>
+              </div>
+              <div class="text-center p-2 bg-green-50 rounded">
+                <p class="text-lg font-semibold text-green-600">+{client.metrics.potentialClicks - client.metrics.monthlyClicks}</p>
+                <p class="text-xs text-green-600">Potential Gain</p>
+              </div>
+            </div>
+
+            <!-- Action Items Summary -->
+            <div class="flex justify-between items-center mb-4 text-xs">
+              <span class="flex items-center">
+                <span class="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
+                {client.actions.urgent} Urgent
+              </span>
+              <span class="flex items-center">
+                <span class="w-2 h-2 bg-orange-500 rounded-full mr-1"></span>
+                {client.actions.high} High Priority
+              </span>
+              <span class="flex items-center">
+                <span class="w-2 h-2 bg-blue-500 rounded-full mr-1"></span>
+                {client.actions.medium} Medium
+              </span>
+            </div>
+
+            <!-- Main Issue Alert -->
+            {client.metrics.mainIssue && (
+              <div class="bg-red-50 border border-red-200 rounded p-2 mb-4">
+                <p class="text-xs text-red-800 font-medium">⚠️ Main Issue: {client.metrics.mainIssue}</p>
+              </div>
+            )}
+
+            <!-- Action Button -->
+            <a 
+              href={`/${client.code}/`} 
+              class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+              View Dashboard →
+            </a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Quick Stats Overview -->
+  <div class="bg-white rounded-lg shadow-sm p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Portfolio Overview</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="text-center p-4 bg-gray-50 rounded-lg">
+        <p class="text-2xl font-bold text-gray-900">{clients.length}</p>
+        <p class="text-sm text-gray-600">Active Clients</p>
+      </div>
+      <div class="text-center p-4 bg-red-50 rounded-lg">
+        <p class="text-2xl font-bold text-red-600">
+          {clients.filter(c => c.status === 'urgent').length}
+        </p>
+        <p class="text-sm text-red-600">Urgent Issues</p>
+      </div>
+      <div class="text-center p-4 bg-blue-50 rounded-lg">
+        <p class="text-2xl font-bold text-blue-600">
+          {clients.reduce((sum, c) => sum + c.metrics.keywordsTracked, 0)}
+        </p>
+        <p class="text-sm text-blue-600">Keywords Tracked</p>
+      </div>
+      <div class="text-center p-4 bg-green-50 rounded-lg">
+        <p class="text-2xl font-bold text-green-600">
+          +{clients.reduce((sum, c) => sum + (c.metrics.potentialClicks - c.metrics.monthlyClicks), 0)}
+        </p>
+        <p class="text-sm text-green-600">Total Opportunity</p>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .grid {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
