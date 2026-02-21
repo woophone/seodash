@@ -41,41 +41,41 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
 
 <Layout title={`${client.name} - SEO Dashboard`}>
   <!-- Client Header -->
-  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-    <div class="flex justify-between items-start">
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-4">
       <div>
-        <h2 class="text-3xl font-bold text-gray-900">{client.name}</h2>
-        <p class="text-lg text-gray-600 mt-1">{client.domain}</p>
-        <p class="text-sm text-gray-500 mt-2">{client.industry}</p>
+        <h2 class="text-xl sm:text-3xl font-bold text-gray-900">{client.name}</h2>
+        <p class="text-sm sm:text-lg text-gray-600 mt-1">{client.domain}</p>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">{client.industry}</p>
       </div>
-      <div class="text-right">
+      <div class="sm:text-right">
         <p class="text-xs text-gray-400">{client.dataSource}</p>
-        <p class="text-xs text-gray-400 mt-1">Analysis: {client.analysisDate}</p>
+        <p class="text-xs text-gray-400 mt-0.5">{client.analysisDate}</p>
       </div>
     </div>
   </div>
 
   <!-- Key Metrics -->
-  <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-    <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Clicks (28d)</p>
-      <p class="text-2xl font-bold text-gray-900">{overview.totalClicks.toLocaleString()}</p>
+  <div class="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-5">
+      <p class="text-xs sm:text-sm text-gray-500">Clicks (28d)</p>
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{overview.totalClicks.toLocaleString()}</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Impressions</p>
-      <p class="text-2xl font-bold text-gray-900">{overview.totalImpressions.toLocaleString()}</p>
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-5">
+      <p class="text-xs sm:text-sm text-gray-500">Impressions</p>
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{overview.totalImpressions.toLocaleString()}</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">CTR</p>
-      <p class="text-2xl font-bold text-gray-900">{overview.ctr}%</p>
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-5">
+      <p class="text-xs sm:text-sm text-gray-500">CTR</p>
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{overview.ctr}%</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Avg Position</p>
-      <p class="text-2xl font-bold text-gray-900">{overview.avgPosition}</p>
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-5">
+      <p class="text-xs sm:text-sm text-gray-500">Avg Position</p>
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{overview.avgPosition}</p>
     </div>
-    <div class="bg-white rounded-lg shadow-sm p-5">
-      <p class="text-sm text-gray-500">Tracked Pages</p>
-      <p class="text-2xl font-bold text-gray-900">{overview.trackedPages}</p>
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-5">
+      <p class="text-xs sm:text-sm text-gray-500">Tracked Pages</p>
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{overview.trackedPages}</p>
     </div>
   </div>
 
@@ -92,23 +92,21 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
   )}
 
   <!-- Opportunity Callout -->
-  <div class="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6">
-    <div class="flex items-start justify-between gap-4">
-      <div class="flex items-start gap-3">
-        <svg class="w-6 h-6 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path>
-        </svg>
-        <div>
-          <p class="text-sm font-semibold text-blue-900">{page1Count} of your pages are already on Google page 1</p>
-          <p class="text-sm text-blue-800 mt-1">
-            {lowPage1Count} of them rank in positions 6–10 — technically on page 1, but where most searchers never scroll.
-            A detailed audit identifies exactly what's keeping each page from reaching the top positions where the real traffic is.
-          </p>
-        </div>
+  <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 sm:p-5 mb-6">
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"></path>
+      </svg>
+      <div>
+        <p class="text-sm font-semibold text-blue-900">{page1Count} of your pages are already on Google page 1</p>
+        <p class="text-sm text-blue-800 mt-1">
+          {lowPage1Count} of them rank in positions 6–10 — technically on page 1, but where most searchers never scroll.
+          A detailed audit identifies exactly what's keeping each page from reaching the top positions where the real traffic is.
+        </p>
+        <button data-open-modal="opportunity" class="text-sm font-medium text-blue-700 hover:text-blue-900 underline underline-offset-2 mt-2">
+          See why this matters
+        </button>
       </div>
-      <button data-open-modal="opportunity" class="text-sm font-medium text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0 underline underline-offset-2">
-        See why this matters
-      </button>
     </div>
   </div>
 
@@ -287,11 +285,11 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
   <!-- NON-AUDITED PAGES -->
   <!-- ============================================ -->
   <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-    <div class="px-6 py-4 border-b border-gray-200">
-      <div class="flex items-center justify-between">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <div class="flex items-center gap-2">
-          <h3 class="text-lg font-semibold text-gray-900">Other Ranked Pages</h3>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{unauditedPages.length} pages</span>
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900">Other Ranked Pages</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">{unauditedPages.length}</span>
         </div>
         <p class="text-xs text-gray-400">Ranked on Google — audit not yet performed</p>
       </div>
@@ -299,20 +297,25 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
 
     <div class="divide-y divide-gray-100">
       {unauditedPages.map(page => (
-        <div class="px-6 py-4 opacity-70">
-          <div class="flex items-center justify-between gap-4">
-            <div class="flex items-center gap-4 flex-1 min-w-0">
-              <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${posColor(page.position)}`}>
+        <div class="px-4 sm:px-6 py-3 sm:py-4 opacity-70">
+          <div class="flex items-center justify-between gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+              <span class={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${posColor(page.position)}`}>
                 #{page.position.toFixed(1)}
               </span>
               <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-700 truncate">{page.shortName}</p>
-                <p class="text-xs text-gray-400 truncate">{page.url}</p>
+                <div class="flex items-center gap-2">
+                  <p class="text-sm font-medium text-gray-700 truncate">{page.shortName}</p>
+                  <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                    No audit
+                  </span>
+                </div>
+                <p class="text-xs text-gray-400 truncate hidden sm:block">{page.url}</p>
               </div>
             </div>
-            <div class="flex items-center gap-6 flex-shrink-0">
-              <div class="text-right hidden sm:block">
-                <p class="text-sm text-gray-500">{page.clicks}</p>
+            <div class="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+              <div class="text-right">
+                <p class="text-xs sm:text-sm text-gray-500">{page.clicks}</p>
                 <p class="text-xs text-gray-300">clicks</p>
               </div>
               <div class="text-right hidden sm:block">
@@ -323,7 +326,7 @@ const totalKeywords = pages.reduce((sum, p) => sum + p.queries.length, 0);
                 <p class="text-sm text-gray-500">{page.queries.length} kw</p>
                 <p class="text-xs text-gray-300">tracked</p>
               </div>
-              <span class="inline-flex items-center px-2.5 py-1 rounded text-xs font-medium bg-gray-100 text-gray-500 whitespace-nowrap">
+              <span class="sm:hidden inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-400 whitespace-nowrap">
                 No audit
               </span>
             </div>
