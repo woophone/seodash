@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "build:v2": "npm run db:init && npm run db:fetch && astro build",
+    "build:v2": "npm run db:init && (npm run db:fetch || echo 'GSC fetch skipped — no credentials') && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:init": "tsx scripts/init-db.js",
