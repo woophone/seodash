@@ -10,14 +10,19 @@ const page1Pages = pages.filter(p => p.googlePage === 1);
 const page2Pages = pages.filter(p => p.googlePage === 2);
 const page3Pages = pages.filter(p => p.googlePage === 3);
 
+// Split page 1 into top (1-5) and bottom (6-10)
+const page1Top = page1Pages.filter(p => p.position <= 5);
+const page1Bottom = page1Pages.filter(p => p.position > 5);
+
 // How many to show initially per section
 const VISIBLE_COUNT = 10;
 
 // Pages ranking 6-10 on page 1 (low visibility)
-const lowPage1Count = page1Pages.filter(p => p.position >= 5.5).length;
+const lowPage1Count = page1Bottom.length;
 
 function posColor(pos) {
-  if (pos <= 10) return 'bg-green-100 text-green-800';
+  if (pos <= 5) return 'bg-green-100 text-green-800';
+  if (pos <= 10) return 'bg-amber-100 text-amber-800';
   if (pos <= 20) return 'bg-orange-100 text-orange-800';
   return 'bg-red-100 text-red-700';
 }
@@ -47,19 +52,13 @@ const processedAudited = auditedPages.map((page, i) => ({
 // Pre-compute which pages are audited (for quick lookup in template)
 const auditedUrls = new Set(auditedPages.map(p => p.url));
 
-// Overflow counts
-const p1Overflow = Math.max(0, page1Pages.length - VISIBLE_COUNT);
+// Overflow counts — page1Top shows all (small), page1Bottom gets capped
+const p1TopOverflow = Math.max(0, page1Top.length - VISIBLE_COUNT);
+const p1BotOverflow = Math.max(0, page1Bottom.length - VISIBLE_COUNT);
 const p2Overflow = Math.max(0, page2Pages.length - VISIBLE_COUNT);
 const p3Overflow = Math.max(0, page3Pages.length - VISIBLE_COUNT);
 
 // Pre-compute position display data to avoid < > in JSX
-const page1Visible = page1Pages.slice(0, VISIBLE_COUNT);
-const page1Hidden = page1Pages.slice(VISIBLE_COUNT);
-const page2Visible = page2Pages.slice(0, VISIBLE_COUNT);
-const page2Hidden = page2Pages.slice(VISIBLE_COUNT);
-const page3Visible = page3Pages.slice(0, VISIBLE_COUNT);
-const page3Hidden = page3Pages.slice(VISIBLE_COUNT);
-
 const processPage = (page) => ({
   ...page,
   posColorClass: posColor(page.position),
@@ -67,12 +66,17 @@ const processPage = (page) => ({
   auditData: processedAudited.find(a => a.url === page.url) || null,
 });
 
-const p1VisibleProcessed = page1Visible.map(processPage);
-const p1HiddenProcessed = page1Hidden.map(processPage);
-const p2VisibleProcessed = page2Visible.map(processPage);
-const p2HiddenProcessed = page2Hidden.map(processPage);
-const p3VisibleProcessed = page3Visible.map(processPage);
-const p3HiddenProcessed = page3Hidden.map(processPage);
+// Page 1 Top (positions 1-5) — show all
+const p1TopProcessed = page1Top.map(processPage);
+
+// Page 1 Bottom (positions 6-10) — capped at 10
+const p1BotVisibleProcessed = page1Bottom.slice(0, VISIBLE_COUNT).map(processPage);
+const p1BotHiddenProcessed = page1Bottom.slice(VISIBLE_COUNT).map(processPage);
+
+const p2VisibleProcessed = page2Pages.slice(0, VISIBLE_COUNT).map(processPage);
+const p2HiddenProcessed = page2Pages.slice(VISIBLE_COUNT).map(processPage);
+const p3VisibleProcessed = page3Pages.slice(0, VISIBLE_COUNT).map(processPage);
+const p3HiddenProcessed = page3Pages.slice(VISIBLE_COUNT).map(processPage);
 
 const totalKeywords = overview.totalKeywords;
 ---
@@ -153,21 +157,77 @@ const totalKeywords = overview.totalKeywords;
   </div>
 
   <!-- ============================================ -->
-  <!-- PAGE 1 SECTION -->
+  <!-- PAGE 1 — TOP (Positions 1-5) -->
   <!-- ============================================ -->
-  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6 border-l-4 border-green-500">
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4 border-l-4 border-green-500">
     <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-green-50">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
         <div class="flex items-center gap-2">
-          <h3 class="text-base sm:text-lg font-semibold text-gray-900">Ranking on Google Page 1</h3>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{page1Pages.length}</span>
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900">Top of Page 1</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{page1Top.length}</span>
         </div>
-        <p class="text-xs text-gray-500">Positions 1–10</p>
+        <p class="text-xs text-gray-500">Positions 1–5</p>
+      </div>
+    </div>
+
+    {page1Top.length >= 1 ? (
+      <div class="divide-y divide-gray-100">
+        {p1TopProcessed.map(page => (
+          <div class="px-4 sm:px-6 py-3 sm:py-4">
+            <div class="flex items-center justify-between gap-2 sm:gap-4">
+              <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                <span class={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-xs font-bold flex-shrink-0 ${page.posColorClass}`}>
+                  #{page.position.toFixed(1)}
+                </span>
+                <p class="text-sm font-medium text-gray-700 truncate">{page.shortName}</p>
+              </div>
+              <div class="flex items-center gap-3 sm:gap-5 flex-shrink-0">
+                <div class="text-right hidden sm:block">
+                  <p class="text-sm text-gray-600">{page.clicks}</p>
+                  <p class="text-xs text-gray-400">clicks</p>
+                </div>
+                <div class="text-right hidden sm:block">
+                  <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
+                  <p class="text-xs text-gray-400">impr</p>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="px-4 sm:px-6 py-6 text-center text-sm text-gray-400">
+        No content pages ranking here yet
+      </div>
+    )}
+
+    <!-- CTR context -->
+    <div class="px-4 sm:px-6 py-4 bg-gray-50 border-t border-gray-100">
+      <p class="text-xs text-gray-500 leading-relaxed">
+        <span class="font-semibold text-gray-700">Positions 1–5 capture ~70% of all Google clicks.</span>
+        Position 1 alone averages a 28% click-through rate. Position 6 drops to 3.5%, and position 10 to just 1%.
+        None of your content pages rank in this zone yet — this is the target.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- PAGE 1 — BOTTOM (Positions 6-10) -->
+  <!-- ============================================ -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6 border-l-4 border-amber-400">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-amber-50">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base sm:text-lg font-semibold text-gray-900">Bottom of Page 1</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{page1Bottom.length}</span>
+        </div>
+        <p class="text-xs text-gray-500">Positions 6–10 — low visibility, at risk of dropping to page 2</p>
       </div>
     </div>
 
     <div class="divide-y divide-gray-100">
-      {p1VisibleProcessed.map(page => (
+      {p1BotVisibleProcessed.map(page => (
         <div>
           {page.isAudited && page.auditData ? (
             <button data-toggle={`audit-${page.auditData.auditIndex}`} class="w-full text-left px-4 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors">
@@ -328,11 +388,11 @@ const totalKeywords = overview.totalKeywords;
       ))}
     </div>
 
-    {/* Show more for page 1 */}
-    {p1Overflow >= 1 && (
+    {/* Show more for bottom of page 1 */}
+    {p1BotOverflow >= 1 && (
       <div>
-        <div id="p1-overflow" class="hidden divide-y divide-gray-100 border-t border-gray-100">
-          {p1HiddenProcessed.map(page => (
+        <div id="p1bot-overflow" class="hidden divide-y divide-gray-100 border-t border-gray-100">
+          {p1BotHiddenProcessed.map(page => (
             <div class="px-4 sm:px-6 py-3 sm:py-4">
               <div class="flex items-center justify-between gap-2 sm:gap-4">
                 <div class="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
@@ -356,8 +416,8 @@ const totalKeywords = overview.totalKeywords;
             </div>
           ))}
         </div>
-        <button data-toggle="p1-overflow" class="w-full px-4 sm:px-6 py-3 text-sm font-medium text-green-700 hover:bg-green-50 border-t border-gray-100 transition-colors text-center">
-          Show {p1Overflow} more
+        <button data-toggle="p1bot-overflow" class="w-full px-4 sm:px-6 py-3 text-sm font-medium text-amber-700 hover:bg-amber-50 border-t border-gray-100 transition-colors text-center">
+          Show {p1BotOverflow} more
         </button>
       </div>
     )}
