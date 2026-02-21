@@ -376,6 +376,7 @@ export const clientData = {
       position: 8.8,
       keywordCount: 12,
       googlePage: 1,
+      workLogSlug: "is-looking",
       queries: [
               {
                       "query": "sexual addiction boobs",

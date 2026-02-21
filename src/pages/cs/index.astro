@@ -59,6 +59,7 @@ const processPage = (page) => {
     hasQueries,
     clickQueries: queries.filter(q => q.clicks >= 1),
     impressionOnlyQueries: queries.filter(q => q.clicks === 0),
+    workLogSlug: page.workLogSlug || null,
   };
 };
 
@@ -217,6 +218,17 @@ const totalKeywords = overview.totalKeywords;
                     <div>
                       <p class="font-semibold">View Detailed Report</p>
                       <p class="text-sm text-blue-200">Full audit with keyword analysis, SERP landscape, content review, and recommendations</p>
+                    </div>
+                    <svg class="w-5 h-5 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                  </a>
+                )}
+                {page.workLogSlug && (
+                  <a href={`/cs/pages/${page.workLogSlug}/work-log/`} class="admin-only hidden flex items-center justify-between p-4 mb-4 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors group">
+                    <div>
+                      <p class="font-semibold">Pending Work</p>
+                      <p class="text-sm text-amber-100">Internal link plan — ready for review</p>
                     </div>
                     <svg class="w-5 h-5 flex-shrink-0 ml-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>

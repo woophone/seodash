@@ -61,8 +61,17 @@ const { title } = Astro.props;
       });
 
       // Admin mode: ?user=admin
-      if (new URLSearchParams(window.location.search).get('user') === 'admin') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('user') === 'admin') {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+        // Propagate ?user=admin to all internal links
+        document.querySelectorAll('a[href^="/"], a.admin-link').forEach(a => {
+          const href = a.getAttribute('href');
+          if (href && !href.includes('user=admin')) {
+            const sep = href.includes('?') ? '&' : '?';
+            a.setAttribute('href', href + sep + 'user=admin');
+          }
+        });
       }
 
       // Collapsible sections
