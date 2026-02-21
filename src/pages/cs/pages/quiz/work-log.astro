@@ -1,0 +1,239 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import { workLog } from '../../../../data/work-logs/quiz-work.js';
+
+const { targetPage, meta, links, onPageFixes } = workLog;
+const newLinks = links.filter(l => l.type === 'new');
+const verifyLinks = links.filter(l => l.type === 'verify');
+const strongNew = newLinks.filter(l => l.fit === 'strong');
+const moderateNew = newLinks.filter(l => l.fit === 'moderate');
+const completedCount = links.filter(l => l.status === 'completed').length;
+const totalCount = links.length;
+const fixesCompleted = onPageFixes.filter(f => f.status === 'completed').length;
+const allComplete = completedCount === totalCount && fixesCompleted === onPageFixes.length && totalCount > 0;
+---
+
+<Layout title={`Work Log — ${targetPage.title}`}>
+  <!-- Back link -->
+  <a href="/cs/" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 admin-link">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    </svg>
+    Back to Dashboard
+  </a>
+
+  <!-- Header -->
+  <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900">Work Log</h2>
+          {allComplete ? (
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              Complete
+            </span>
+          ) : (
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+              Pending
+            </span>
+          )}
+        </div>
+        <p class="text-lg text-gray-600">{targetPage.title}</p>
+        <p class="text-xs text-gray-400 mt-1 font-mono">compulsionsolutions.com{targetPage.url}</p>
+      </div>
+      <div class="text-right text-sm text-gray-500">
+        <p>Prepared: {meta.createdDate}</p>
+        {meta.completedDate && <p>Completed: {meta.completedDate}</p>}
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <p class="text-xs text-gray-500">Posts Scanned</p>
+      <p class="text-2xl font-bold text-gray-900">{meta.postsScanned}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <p class="text-xs text-gray-500">New Link Opps</p>
+      <p class="text-2xl font-bold text-blue-600">{newLinks.length}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <p class="text-xs text-gray-500">Existing to Verify</p>
+      <p class="text-2xl font-bold text-amber-600">{verifyLinks.length}</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm p-4">
+      <p class="text-xs text-gray-500">On-Page Fixes</p>
+      <p class="text-2xl font-bold text-purple-600">{onPageFixes.length}</p>
+    </div>
+  </div>
+
+  <!-- On-Page Fixes -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4 border-l-4 border-purple-500">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-purple-50">
+      <div class="flex items-center gap-2">
+        <h3 class="text-base font-semibold text-gray-900">On-Page Fixes</h3>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">{onPageFixes.length}</span>
+      </div>
+      <p class="text-xs text-gray-500 mt-1">Changes to the quiz page itself</p>
+    </div>
+    <div class="divide-y divide-gray-100">
+      {onPageFixes.map(fix => (
+        <div class="px-4 sm:px-6 py-4">
+          <div class="flex items-start gap-3">
+            <span class={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0 mt-0.5 ${
+              fix.severity === 'critical' ? 'bg-red-100 text-red-700' :
+              fix.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+              'bg-blue-100 text-blue-700'
+            }`}>{fix.severity}</span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900">{fix.action}</p>
+              <p class="text-xs text-gray-500 mt-1">{fix.detail}</p>
+              {fix.current && (
+                <p class="text-xs text-gray-400 mt-1 font-mono break-all">Current: {fix.current}</p>
+              )}
+              {fix.target && (
+                <p class="text-xs text-green-600 mt-1 font-mono break-all">Target: {fix.target}</p>
+              )}
+            </div>
+            {fix.status === 'completed' ? (
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                Done
+              </span>
+            ) : (
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                Pending
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- New Internal Links — Strong Fit -->
+  {strongNew.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4 border-l-4 border-green-500">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-green-50">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-semibold text-gray-900">New Links — Strong Fit</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">{strongNew.length}</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Posts that should link to the quiz page — reader's mental state naturally leads to self-assessment</p>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {strongNew.map(link => (
+          <div class="px-4 sm:px-6 py-4">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  {link.status === 'completed' ? (
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                      Linked
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                      Pending
+                    </span>
+                  )}
+                  <a href={`https://compulsionsolutions.com${link.sourceUrl}`} target="_blank" rel="noopener" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">{link.sourceTitle}</a>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">{link.reason}</p>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-gray-400">Anchor:</span>
+                  <code class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-mono text-xs">"{link.anchorText}"</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- New Internal Links — Moderate Fit -->
+  {moderateNew.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4 border-l-4 border-amber-400">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-amber-50">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-semibold text-gray-900">New Links — Moderate Fit</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">{moderateNew.length}</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Good fit — requires careful placement</p>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {moderateNew.map(link => (
+          <div class="px-4 sm:px-6 py-4">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  {link.status === 'completed' ? (
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                      Linked
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                      Pending
+                    </span>
+                  )}
+                  <a href={`https://compulsionsolutions.com${link.sourceUrl}`} target="_blank" rel="noopener" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">{link.sourceTitle}</a>
+                </div>
+                <p class="text-xs text-gray-500 mb-2">{link.reason}</p>
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-gray-400">Anchor:</span>
+                  <code class="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded font-mono text-xs">"{link.anchorText}"</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Existing Quiz Links to Verify -->
+  {verifyLinks.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6 border-l-4 border-blue-400">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-blue-50">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-semibold text-gray-900">Existing Quiz Links to Verify</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">{verifyLinks.length}</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">These posts already mention the quiz — verify links point to the correct URL, not old Neulia.com domains</p>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {verifyLinks.map(link => (
+          <div class="px-4 sm:px-6 py-4">
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  {link.status === 'completed' ? (
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                      Verified
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-500 flex-shrink-0">
+                      Check
+                    </span>
+                  )}
+                  <a href={`https://compulsionsolutions.com${link.sourceUrl}`} target="_blank" rel="noopener" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">{link.sourceTitle}</a>
+                </div>
+                <p class="text-xs text-gray-500">{link.reason}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Footer -->
+  <div class="text-center py-4">
+    <p class="text-xs text-gray-400">{meta.postsScanned} posts scanned &middot; {meta.rawMatches} keyword matches &middot; {meta.afterMentalStateTest} passed contextual fit test &middot; {meta.existingQuizLinks} existing quiz links to verify</p>
+  </div>
+</Layout>

@@ -1,0 +1,312 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import { isLookingReport } from '../../../../data/cs-is-looking-report.js';
+
+const { page, strength, gsc, keywords, timeSeries, contentAudit, issues, adequacyAssessment } = isLookingReport;
+
+const criticalIssues = issues.filter(i => i.severity === 'critical');
+const highIssues = issues.filter(i => i.severity === 'high');
+const mediumIssues = issues.filter(i => i.severity === 'medium');
+const otherIssues = issues.filter(i => i.severity === 'low' || i.severity === 'info');
+
+// Trend data
+const avgImpressions = Math.round(timeSeries.reduce((s, d) => s + d.impressions, 0) / timeSeries.length);
+const avgClicks = (timeSeries.reduce((s, d) => s + d.clicks, 0) / timeSeries.length).toFixed(1);
+
+// Position color helper
+const posColor = (pos) => pos <= 5 ? 'bg-green-100 text-green-800' : pos <= 10 ? 'bg-blue-100 text-blue-800' : 'bg-orange-100 text-orange-800';
+const severityColor = (s) => s === 'critical' ? 'bg-red-50 border-red-200' : s === 'high' ? 'bg-orange-50 border-orange-200' : s === 'medium' ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200';
+const severityDot = (s) => s === 'critical' ? 'bg-red-500' : s === 'high' ? 'bg-orange-500' : s === 'medium' ? 'bg-blue-500' : 'bg-gray-400';
+const severityText = (s) => s === 'critical' ? 'text-red-700' : s === 'high' ? 'text-orange-700' : s === 'medium' ? 'text-blue-700' : 'text-gray-500';
+---
+
+<Layout title={`${page.title} — Page Report`}>
+  <!-- Back link -->
+  <div class="mb-6 flex items-center gap-4">
+    <a href="/cs/" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Dashboard
+    </a>
+    <a href="/cs/pages/is-looking/work-log/" class="admin-only hidden inline-flex items-center gap-1 text-sm px-3 py-1 bg-amber-100 text-amber-700 rounded-full hover:bg-amber-200 admin-link">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+      Pending Work
+    </a>
+  </div>
+
+  <!-- Page Header + Overview -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-4">
+      <div>
+        <h2 class="text-xl sm:text-3xl font-bold text-gray-900">{page.title}</h2>
+        <p class="text-sm text-gray-500 mt-1">{page.fullTitle}</p>
+      </div>
+      <div class="sm:text-right flex-shrink-0">
+        <p class="text-xs text-gray-400">Report: {page.analysisDate}</p>
+        <p class="text-xs text-gray-400">Source: {page.archiveSource}</p>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-t border-gray-100">
+      <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Overview</h3>
+      <p class="text-xs text-gray-400 font-mono mt-1">{page.url}</p>
+      <div class="space-y-3 text-sm text-gray-700 leading-relaxed mt-3">
+        <p>
+          This is a 959-word expert article by <strong>James Gallegos, M.A.</strong> covering whether compulsive "looking" (ogling) is a symptom of sex addiction. It includes practical self-monitoring tools (the Two-Second Rule), scientific context, and direct therapeutic guidance. The content is genuine, specific, and matches searcher intent.
+        </p>
+        <p>
+          Despite strong content, this page has only <strong>1 inbound internal link</strong> out of 333 posts on the site — a critical orphan page. It's generating {gsc.clicks} clicks and {gsc.impressions.toLocaleString()} impressions over 26 days purely on content quality and domain authority. Seven strong internal link opportunities have been identified from posts that discuss compulsive looking, objectification, and related recovery topics.
+        </p>
+        <p>
+          The biggest win is simple: connect this page to the rest of the site. The content already works — it just needs to be found.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GSC Metrics -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow-sm text-center p-3">
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{gsc.clicks}</p>
+      <p class="text-xs text-gray-500">Clicks (26d)</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm text-center p-3">
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{gsc.impressions.toLocaleString()}</p>
+      <p class="text-xs text-gray-500">Impressions</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm text-center p-3">
+      <p class="text-lg sm:text-2xl font-bold text-gray-900">{gsc.ctr}%</p>
+      <p class="text-xs text-gray-500">CTR</p>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm text-center p-3">
+      <p class="text-lg sm:text-2xl font-bold text-blue-600">#{gsc.position}</p>
+      <p class="text-xs text-gray-500">Avg Position</p>
+    </div>
+  </div>
+
+  <!-- Strength -->
+  <div class="bg-green-50 border border-green-200 rounded-lg p-5 mb-6">
+    <h3 class="text-base font-semibold text-green-900 mb-2">{strength.headline}</h3>
+    <p class="text-sm text-green-800 leading-relaxed">{strength.detail}</p>
+  </div>
+
+  <!-- Content Area Audit -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h3 class="text-base font-semibold text-gray-900 mb-4">Content Area Audit</h3>
+
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+      <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <p class="text-2xl font-bold text-gray-900">{contentAudit.wordCount}</p>
+        <p class="text-xs text-gray-500">Words</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <p class="text-2xl font-bold text-gray-900">{contentAudit.contentAreaElements.length}</p>
+        <p class="text-xs text-gray-500">Headings</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded-lg border border-gray-200">
+        <p class="text-2xl font-bold text-gray-900">{contentAudit.imagesInContent}</p>
+        <p class="text-xs text-gray-500">Images</p>
+      </div>
+      <div class="text-center p-3 bg-red-50 rounded-lg border border-red-200">
+        <p class="text-2xl font-bold text-red-600">{contentAudit.internalLinks.inbound}</p>
+        <p class="text-xs text-red-500">Inbound Links</p>
+        <p class="text-xs text-red-400">critical deficit</p>
+      </div>
+    </div>
+
+    <p class="text-sm text-gray-700 mb-4">{contentAudit.wordCountNote}</p>
+
+    <!-- Heading structure -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-2">Heading Structure</h4>
+    <div class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-200 mb-4">
+      {contentAudit.contentAreaElements.map(el => (
+        <div class="px-4 py-2 flex items-center gap-3">
+          <span class={`text-xs font-bold px-2 py-0.5 rounded ${
+            el.type === 'H1 (inferred)' ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'
+          }`}>{el.type}</span>
+          <p class="text-sm text-gray-800">{el.text}</p>
+        </div>
+      ))}
+    </div>
+    <div class="p-3 bg-orange-50 border border-orange-200 rounded-lg mb-4">
+      <p class="text-xs text-orange-800">{contentAudit.headingIssue}</p>
+    </div>
+
+    <!-- Internal links -->
+    <h4 class="text-sm font-semibold text-gray-700 mb-2">Internal Links</h4>
+    <div class="grid grid-cols-3 gap-3 mb-3">
+      <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+        <p class="text-lg font-bold text-gray-600">{contentAudit.internalLinks.contextual}</p>
+        <p class="text-xs text-gray-500">Contextual (editorial)</p>
+      </div>
+      <div class="text-center p-3 bg-red-50 rounded border border-red-200">
+        <p class="text-lg font-bold text-red-600">{contentAudit.internalLinks.inbound}</p>
+        <p class="text-xs text-red-500">Inbound (from other pages)</p>
+      </div>
+      <div class="text-center p-3 bg-gray-50 rounded border border-gray-200">
+        <p class="text-lg font-bold text-gray-300">{contentAudit.internalLinks.template}</p>
+        <p class="text-xs text-gray-400">Template (nav/footer)</p>
+      </div>
+    </div>
+    <p class="text-xs text-gray-500 mb-2">{contentAudit.internalLinks.contextualNote}</p>
+    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-xs text-red-800"><strong>Inbound links:</strong> {contentAudit.internalLinks.inboundNote}</p>
+    </div>
+  </div>
+
+  <!-- Keywords -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-base font-semibold text-gray-900">Keywords ({keywords.length})</h3>
+      <p class="text-xs text-gray-400">{gsc.dateRange}</p>
+    </div>
+
+    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+      <p class="text-xs text-amber-800">
+        <strong>Note:</strong> This page generates {gsc.clicks} clicks total but GSC only reports 12 individual keywords (all showing 0 clicks individually). Most of the traffic comes from anonymized long-tail queries that Google aggregates. The page's real keyword breadth is much wider than what's visible here.
+      </p>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100">
+            <th class="px-3 py-2 text-left">Query</th>
+            <th class="px-3 py-2 text-right">Position</th>
+            <th class="px-3 py-2 text-right">Impressions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {keywords.map(kw => (
+            <tr class="hover:bg-gray-50">
+              <td class="px-3 py-2 text-sm text-gray-900">{kw.query}</td>
+              <td class="px-3 py-2 text-right">
+                <span class={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${posColor(kw.position)}`}>
+                  #{kw.position.toFixed(1)}
+                </span>
+              </td>
+              <td class="px-3 py-2 text-right text-sm text-gray-600">{kw.impressions}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Trend -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h3 class="text-base font-semibold text-gray-900 mb-4">Impressions Trend</h3>
+    <div class="grid grid-cols-3 gap-3 mb-4">
+      <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <p class="text-xl font-bold text-blue-700">{avgImpressions}</p>
+        <p class="text-xs text-blue-600">avg impressions/day</p>
+      </div>
+      <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <p class="text-xl font-bold text-blue-700">{avgClicks}</p>
+        <p class="text-xs text-blue-600">avg clicks/day</p>
+      </div>
+      <div class="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <p class="text-xl font-bold text-blue-700">#{gsc.position}</p>
+        <p class="text-xs text-blue-600">avg position</p>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Daily impressions</p>
+    <div class="flex items-end gap-px h-32 bg-gray-50 rounded-lg p-2">
+      {timeSeries.map(day => {
+        const maxImp = Math.max(...timeSeries.map(d => d.impressions));
+        const heightPct = (day.impressions / maxImp) * 100;
+        return (
+          <div class="flex-1 flex flex-col items-center group relative">
+            <div
+              class="w-full rounded-t bg-blue-400 hover:bg-blue-500 transition-colors"
+              style={`height: ${heightPct}%`}
+            ></div>
+            <div class="absolute bottom-full mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+              {day.date.slice(5)}: {day.impressions} imp, {day.clicks} clicks
+            </div>
+          </div>
+        );
+      })}
+    </div>
+    <div class="flex justify-between mt-2 text-xs text-gray-400">
+      <span>Jan 24</span>
+      <span>Feb 18</span>
+    </div>
+    <p class="text-xs text-gray-500 mt-3">Impressions are stable — no crash like the quiz page. This page's traffic is steady but constrained by the internal link deficit.</p>
+  </div>
+
+  <!-- Issues & Recommendations -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h3 class="text-base font-semibold text-gray-900 mb-4">Issues & Recommendations ({issues.length})</h3>
+    <p class="text-xs text-gray-500 mb-4">Page-specific issues only — site-wide issues are on the dashboard</p>
+
+    <div class="space-y-3">
+      {issues.map(item => (
+        <div class={`p-4 rounded-lg border ${severityColor(item.severity)}`}>
+          <div class="flex items-center gap-2 mb-1">
+            <span class={`w-2 h-2 rounded-full ${severityDot(item.severity)}`}></span>
+            <span class={`text-xs font-bold uppercase ${severityText(item.severity)}`}>{item.severity}</span>
+            <span class="text-xs text-gray-400">{item.category}</span>
+          </div>
+          <p class="text-sm font-medium text-gray-900 mt-1">{item.issue}</p>
+          <p class="text-sm text-gray-700 mt-2">{item.recommendation}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Author info -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h3 class="text-base font-semibold text-gray-900 mb-3">Author Information</h3>
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+        <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg>
+      </div>
+      <div>
+        <p class="text-sm font-medium text-gray-900">{contentAudit.author.name}</p>
+        <div class="flex flex-wrap gap-2 mt-1">
+          <span class={`text-xs px-2 py-0.5 rounded ${contentAudit.author.inTitle ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {contentAudit.author.inTitle ? 'In title' : 'Not in title'}
+          </span>
+          <span class={`text-xs px-2 py-0.5 rounded ${contentAudit.author.inContent ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {contentAudit.author.inContent ? 'In content' : 'Not in content'}
+          </span>
+          <span class={`text-xs px-2 py-0.5 rounded ${contentAudit.author.authorPage ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            {contentAudit.author.authorPage ? 'Has author page' : 'No author page'}
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">{contentAudit.author.note}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Report Assessment -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h3 class="text-base font-semibold text-gray-900 mb-3">Report Assessment</h3>
+    <div class="mb-3">
+      <h4 class="text-sm font-semibold text-green-700 mb-1">What this report covers</h4>
+      <p class="text-sm text-gray-700">{adequacyAssessment.whatWeHave}</p>
+    </div>
+    <div class="mb-3">
+      <h4 class="text-sm font-semibold text-orange-700 mb-1">Gaps</h4>
+      <ul class="space-y-1">
+        {adequacyAssessment.whatsMissing.map(gap => (
+          <li class="flex items-start text-sm text-gray-700">
+            <span class="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+            {gap}
+          </li>
+        ))}
+      </ul>
+    </div>
+    <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+      <p class="text-sm text-blue-800"><strong>Verdict:</strong> {adequacyAssessment.verdict}</p>
+    </div>
+  </div>
+
+  <div class="text-center py-4">
+    <a href="/cs/" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to Dashboard</a>
+  </div>
+</Layout>

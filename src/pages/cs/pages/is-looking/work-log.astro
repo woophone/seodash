@@ -7,17 +7,26 @@ const strongLinks = links.filter(l => l.fit === 'strong');
 const moderateLinks = links.filter(l => l.fit === 'moderate');
 const completedCount = links.filter(l => l.status === 'completed').length;
 const totalCount = links.length;
-const allComplete = completedCount === totalCount && totalCount > 0;
+const fixesCompleted = onPageFixes.filter(f => f.status === 'completed').length;
+const allComplete = completedCount === totalCount && fixesCompleted === onPageFixes.length && totalCount > 0;
 ---
 
 <Layout title={`Work Log — ${targetPage.title}`}>
-  <!-- Back link -->
-  <a href="/cs/" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4 admin-link">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-    </svg>
-    Back to Dashboard
-  </a>
+  <!-- Back links -->
+  <div class="flex items-center gap-4 mb-4">
+    <a href="/cs/" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 admin-link">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Dashboard
+    </a>
+    <a href="/cs/pages/is-looking/" class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 admin-link">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Audit Report
+    </a>
+  </div>
 
   <!-- Header -->
   <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -53,7 +62,7 @@ const allComplete = completedCount === totalCount && totalCount > 0;
       <p class="text-2xl font-bold text-gray-900">{meta.postsScanned}</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm p-4">
-      <p class="text-xs text-gray-500">Opportunities Found</p>
+      <p class="text-xs text-gray-500">Link Opportunities</p>
       <p class="text-2xl font-bold text-blue-600">{meta.afterMentalStateTest}</p>
     </div>
     <div class="bg-white rounded-lg shadow-sm p-4">
@@ -66,6 +75,46 @@ const allComplete = completedCount === totalCount && totalCount > 0;
       <p class="text-xs text-gray-400">{targetPage.deficitSeverity} deficit</p>
     </div>
   </div>
+
+  <!-- On-Page Fixes -->
+  {onPageFixes.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-4 border-l-4 border-purple-500">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-purple-50">
+        <div class="flex items-center gap-2">
+          <h3 class="text-base font-semibold text-gray-900">On-Page Fixes</h3>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">{onPageFixes.length}</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Changes to the target page itself</p>
+      </div>
+      <div class="divide-y divide-gray-100">
+        {onPageFixes.map(fix => (
+          <div class="px-4 sm:px-6 py-4">
+            <div class="flex items-start gap-3">
+              <span class={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0 mt-0.5 ${
+                fix.severity === 'critical' ? 'bg-red-100 text-red-700' :
+                fix.severity === 'high' ? 'bg-orange-100 text-orange-700' :
+                'bg-blue-100 text-blue-700'
+              }`}>{fix.severity}</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900">{fix.action}</p>
+                <p class="text-xs text-gray-500 mt-1">{fix.detail}</p>
+              </div>
+              {fix.status === 'completed' ? (
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700 flex-shrink-0">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                  Done
+                </span>
+              ) : (
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 flex-shrink-0">
+                  Pending
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )}
 
   <!-- Internal Links — Strong Fit -->
   {strongLinks.length > 0 && (
@@ -93,7 +142,7 @@ const allComplete = completedCount === totalCount && totalCount > 0;
                       Pending
                     </span>
                   )}
-                  <p class="text-sm font-medium text-gray-900">{link.sourceTitle}</p>
+                  <a href={`https://compulsionsolutions.com${link.sourceUrl}`} target="_blank" rel="noopener" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">{link.sourceTitle}</a>
                 </div>
                 <p class="text-xs text-gray-500 mb-2">{link.reason}</p>
                 <div class="flex items-center gap-2 text-xs">
@@ -134,7 +183,7 @@ const allComplete = completedCount === totalCount && totalCount > 0;
                       Pending
                     </span>
                   )}
-                  <p class="text-sm font-medium text-gray-900">{link.sourceTitle}</p>
+                  <a href={`https://compulsionsolutions.com${link.sourceUrl}`} target="_blank" rel="noopener" class="text-sm font-medium text-blue-700 hover:text-blue-900 hover:underline">{link.sourceTitle}</a>
                 </div>
                 <p class="text-xs text-gray-500 mb-2">{link.reason}</p>
                 <div class="flex items-center gap-2 text-xs">
@@ -145,18 +194,6 @@ const allComplete = completedCount === totalCount && totalCount > 0;
             </div>
           </div>
         ))}
-      </div>
-    </div>
-  )}
-
-  <!-- On-page fixes (empty for now) -->
-  {onPageFixes.length > 0 && (
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6 border-l-4 border-purple-400">
-      <div class="px-4 sm:px-6 py-4 border-b border-gray-200 bg-purple-50">
-        <h3 class="text-base font-semibold text-gray-900">On-Page Fixes</h3>
-      </div>
-      <div class="px-4 sm:px-6 py-4">
-        <p class="text-sm text-gray-400 italic">No on-page fixes planned yet</p>
       </div>
     </div>
   )}

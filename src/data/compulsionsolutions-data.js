@@ -35,6 +35,7 @@ export const clientData = {
       keywordCount: 47,
       googlePage: 1,
       reportSlug: "quiz",
+      workLogSlug: "quiz",
       queries: [
               {
                       "query": "hypersexuality test",
@@ -376,6 +377,7 @@ export const clientData = {
       position: 8.8,
       keywordCount: 12,
       googlePage: 1,
+      reportSlug: "is-looking",
       workLogSlug: "is-looking",
       queries: [
               {
