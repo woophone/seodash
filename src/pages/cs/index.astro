@@ -64,6 +64,7 @@ const processPage = (page) => ({
   posColorClass: posColor(page.position),
   isAudited: auditedUrls.has(page.url),
   auditData: processedAudited.find(a => a.url === page.url) || null,
+  ctrDisplay: page.ctr != null ? page.ctr + '%' : 'n/a',
 });
 
 // Page 1 Top (positions 1-5) — show all
@@ -255,6 +256,10 @@ const totalKeywords = overview.totalKeywords;
                     <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
                     <p class="text-xs text-gray-400">impr</p>
                   </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctrDisplay}</p>
+                    <p class="text-xs text-gray-400">CTR</p>
+                  </div>
                   <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
                   <svg class="w-4 h-4 text-gray-400 toggle-arrow transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -279,6 +284,10 @@ const totalKeywords = overview.totalKeywords;
                   <div class="text-right hidden sm:block">
                     <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
                     <p class="text-xs text-gray-400">impr</p>
+                  </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctrDisplay}</p>
+                    <p class="text-xs text-gray-400">CTR</p>
                   </div>
                   <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
                 </div>
@@ -410,6 +419,10 @@ const totalKeywords = overview.totalKeywords;
                     <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
                     <p class="text-xs text-gray-400">impr</p>
                   </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctrDisplay}</p>
+                    <p class="text-xs text-gray-400">CTR</p>
+                  </div>
                   <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
                 </div>
               </div>
@@ -484,6 +497,10 @@ const totalKeywords = overview.totalKeywords;
                     <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
                     <p class="text-xs text-gray-400">impr</p>
                   </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctrDisplay}</p>
+                    <p class="text-xs text-gray-400">CTR</p>
+                  </div>
                   <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
                 </div>
               </div>
@@ -557,6 +574,10 @@ const totalKeywords = overview.totalKeywords;
                   <div class="text-right hidden sm:block">
                     <p class="text-sm text-gray-600">{page.impressions.toLocaleString()}</p>
                     <p class="text-xs text-gray-400">impr</p>
+                  </div>
+                  <div class="text-right hidden md:block">
+                    <p class="text-sm text-gray-600">{page.ctrDisplay}</p>
+                    <p class="text-xs text-gray-400">CTR</p>
                   </div>
                   <span class="text-xs text-gray-500 whitespace-nowrap">+{page.keywordCount} kw</span>
                 </div>
