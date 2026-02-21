@@ -1,0 +1,120 @@
+---
+import Layout from '../../../../layouts/Layout.astro';
+import MetricsGrid from '../../../../components/v2/MetricsGrid.astro';
+import KeywordsTable from '../../../../components/v2/KeywordsTable.astro';
+import PositionChart from '../../../../components/v2/PositionChart.tsx';
+import TrendChart from '../../../../components/v2/TrendChart.tsx';
+import {
+  getClient,
+  getClientPages,
+  getPageTimeline,
+  getPageKeywords,
+  getPagesSummary,
+} from '../../../../lib/db.js';
+
+export function getStaticPaths() {
+  // Use getPagesSummary to get pages with clicks in last 28 days
+  const pages = getPagesSummary('cs', 28).filter(p => p.clicks > 0);
+
+  return pages.map(p => {
+    const path = new URL(p.page_url).pathname.replace(/^\/|\/$/g, '');
+    const slug = path.replace(/\//g, '-') || 'homepage';
+    return {
+      params: { slug },
+      props: { pageUrl: p.page_url },
+    };
+  });
+}
+
+const { slug } = Astro.params;
+const { pageUrl } = Astro.props;
+
+const client = getClient('cs');
+const timeline = getPageTimeline('cs', pageUrl, 365);
+const keywords = getPageKeywords('cs', pageUrl);
+
+// Page-level aggregate (last 28 days)
+const recent = timeline.filter(d => {
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 28);
+  return new Date(d.date) >= cutoff;
+});
+
+const totalClicks = recent.reduce((s, d) => s + d.clicks, 0);
+const totalImpressions = recent.reduce((s, d) => s + d.impressions, 0);
+const avgPosition = totalImpressions > 0
+  ? Math.round(recent.reduce((s, d) => s + d.position * d.impressions, 0) / totalImpressions * 10) / 10
+  : 0;
+const ctr = totalImpressions > 0
+  ? Math.round(totalClicks / totalImpressions * 10000) / 100
+  : 0;
+
+// Derive page name from URL
+const urlPath = new URL(pageUrl).pathname;
+const pageName = urlPath === '/' ? 'Homepage' :
+  urlPath.replace(/^\/|\/$/g, '').split('/').pop()?.replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase()) || urlPath;
+
+const metrics = [
+  { label: 'Clicks (28d)', value: totalClicks, color: 'text-blue-700' },
+  { label: 'Impressions', value: totalImpressions.toLocaleString(), color: 'text-purple-700' },
+  { label: 'CTR', value: ctr + '%' },
+  { label: 'Avg Position', value: avgPosition },
+  { label: 'Keywords', value: keywords.length },
+];
+
+// Position data for chart
+const positionData = timeline.map(d => ({ date: d.date, position: d.position }));
+const trendData = timeline.map(d => ({ date: d.date, clicks: d.clicks, impressions: d.impressions }));
+---
+
+<Layout title={`${pageName} - ${client.name}`}>
+  <!-- Back to dashboard -->
+  <div class="mb-4">
+    <a href="/v2/cs/" class="text-sm text-blue-600 hover:text-blue-800">&larr; Back to Dashboard</a>
+  </div>
+
+  <!-- Page Header -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-900">{pageName}</h2>
+    <p class="text-sm text-gray-500 mt-1 break-all">{pageUrl}</p>
+    <p class="text-xs text-gray-400 mt-2">{client.name} · {client.domain}</p>
+  </div>
+
+  <!-- Metrics -->
+  <div class="mb-6">
+    <MetricsGrid metrics={metrics} />
+  </div>
+
+  <!-- Position Timeline -->
+  {positionData.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <PositionChart client:load data={positionData} title={`Position History (${positionData.length} days)`} />
+    </div>
+  )}
+
+  <!-- Traffic Timeline -->
+  {trendData.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <TrendChart client:load data={trendData} title={`Clicks & Impressions (${trendData.length} days)`} />
+    </div>
+  )}
+
+  <!-- Keywords Table -->
+  {keywords.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-3">Keywords ({keywords.length})</h3>
+      <KeywordsTable
+        keywords={keywords}
+        expandable={keywords.length > 20}
+        initialShow={20}
+        tableId="page-kw"
+      />
+    </div>
+  )}
+
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-400 mt-8 mb-4">
+    <p>Data: Google Search Console · Updated daily</p>
+  </div>
+</Layout>

@@ -1,0 +1,87 @@
+---
+interface Keyword {
+  query: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface Props {
+  keywords: Keyword[];
+  expandable?: boolean;
+  initialShow?: number;
+  tableId?: string;
+}
+
+const { keywords, expandable = false, initialShow = 10, tableId = '' } = Astro.props;
+
+function posColor(pos: number) {
+  if (pos <= 5) return 'bg-green-100 text-green-800';
+  if (pos <= 10) return 'bg-amber-100 text-amber-800';
+  if (pos <= 20) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-700';
+}
+
+const visible = expandable ? keywords.slice(0, initialShow) : keywords;
+const hidden = expandable ? keywords.slice(initialShow) : [];
+---
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="text-left text-xs text-gray-500 border-b">
+        <th class="py-2 pr-2">Keyword</th>
+        <th class="py-2 px-2 text-right">Clicks</th>
+        <th class="py-2 px-2 text-right hidden sm:table-cell">Impressions</th>
+        <th class="py-2 px-2 text-right hidden sm:table-cell">CTR</th>
+        <th class="py-2 pl-2 text-right">Position</th>
+      </tr>
+    </thead>
+    <tbody>
+      {visible.map(kw => (
+        <tr class="border-b border-gray-50 hover:bg-gray-50">
+          <td class="py-1.5 pr-2 text-gray-700 max-w-[200px] truncate">{kw.query}</td>
+          <td class="py-1.5 px-2 text-right font-medium">{kw.clicks}</td>
+          <td class="py-1.5 px-2 text-right text-gray-500 hidden sm:table-cell">{kw.impressions.toLocaleString()}</td>
+          <td class="py-1.5 px-2 text-right text-gray-500 hidden sm:table-cell">{kw.ctr}%</td>
+          <td class="py-1.5 pl-2 text-right">
+            <span class={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${posColor(kw.position)}`}>
+              {kw.position.toFixed(1)}
+            </span>
+          </td>
+        </tr>
+      ))}
+      {hidden.length > 0 && (
+        <tr id={`kw-hidden-${tableId}`} class="hidden">
+          <td colspan="5">
+            <table class="w-full">
+              {hidden.map(kw => (
+                <tr class="border-b border-gray-50 hover:bg-gray-50">
+                  <td class="py-1.5 pr-2 text-gray-700 max-w-[200px] truncate">{kw.query}</td>
+                  <td class="py-1.5 px-2 text-right font-medium">{kw.clicks}</td>
+                  <td class="py-1.5 px-2 text-right text-gray-500 hidden sm:table-cell">{kw.impressions.toLocaleString()}</td>
+                  <td class="py-1.5 px-2 text-right text-gray-500 hidden sm:table-cell">{kw.ctr}%</td>
+                  <td class="py-1.5 pl-2 text-right">
+                    <span class={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${posColor(kw.position)}`}>
+                      {kw.position.toFixed(1)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </table>
+          </td>
+        </tr>
+      )}
+    </tbody>
+  </table>
+  {hidden.length > 0 && (
+    <button
+      data-toggle={`kw-hidden-${tableId}`}
+      class="mt-1 text-xs text-blue-600 hover:text-blue-800 cursor-pointer"
+    >
+      Show {hidden.length} more keywords
+      <span class="toggle-arrow inline-block transition-transform">&#9660;</span>
+    </button>
+  )}
+</div>

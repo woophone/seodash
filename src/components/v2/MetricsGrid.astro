@@ -1,0 +1,26 @@
+---
+interface Metric {
+  label: string;
+  value: string | number;
+  color?: string;
+  note?: string;
+}
+
+interface Props {
+  metrics: Metric[];
+}
+
+const { metrics } = Astro.props;
+---
+
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+  {metrics.map(m => (
+    <div class="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+      <p class="text-xs text-gray-500">{m.label}</p>
+      <p class={`text-lg sm:text-2xl font-bold ${m.color || 'text-gray-900'}`}>
+        {m.value}
+      </p>
+      {m.note && <p class="text-xs text-gray-400 mt-0.5">{m.note}</p>}
+    </div>
+  ))}
+</div>

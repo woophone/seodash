@@ -6,19 +6,25 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
+    "build:v2": "npm run db:init && npm run db:fetch && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:init": "tsx scripts/init-db.js",
+    "db:fetch": "tsx scripts/fetch-gsc.js --client cs",
+    "db:backfill": "tsx scripts/fetch-gsc.js --client cs --backfill"
   },
   "dependencies": {
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.2",
     "astro": "^4.15.11",
+    "better-sqlite3": "^12.6.2",
     "chart.js": "^4.4.6",
     "chartjs-adapter-date-fns": "^3.0.0",
     "date-fns": "^4.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tailwindcss": "^3.4.16"
+    "tailwindcss": "^3.4.16",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",

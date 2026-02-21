@@ -1,0 +1,168 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import MetricsGrid from '../../../components/v2/MetricsGrid.astro';
+import SectionHeader from '../../../components/v2/SectionHeader.astro';
+import PageRow from '../../../components/v2/PageRow.astro';
+import TrendChart from '../../../components/v2/TrendChart.tsx';
+import {
+  getClient,
+  getClientOverview,
+  getClientDailyTrend,
+  getPagesSummary,
+  getMovers,
+} from '../../../lib/db.js';
+
+const client = getClient('cs');
+const overview = getClientOverview('cs', 28);
+const trend = getClientDailyTrend('cs', 90);
+const pages = getPagesSummary('cs', 28);
+const movers = getMovers('cs', 30);
+
+// Group pages by Google page position
+const page1Pages = pages.filter(p => p.googlePage === 1);
+const page2Pages = pages.filter(p => p.googlePage === 2);
+const page3Pages = pages.filter(p => p.googlePage === 3);
+
+// Helper to generate slug from URL
+function urlToSlug(pageUrl: string) {
+  const path = new URL(pageUrl).pathname.replace(/^\/|\/$/g, '');
+  return path.replace(/\//g, '-') || 'homepage';
+}
+
+// Count page 1 positions 1-5 vs 6-10
+const top5Count = page1Pages.filter(p => p.position <= 5).length;
+const pos6to10Count = page1Pages.filter(p => p.position > 5).length;
+
+const metrics = [
+  { label: `Clicks (${overview.startDate?.slice(5)} – ${overview.endDate?.slice(5)})`, value: overview.totalClicks.toLocaleString(), color: 'text-blue-700' },
+  { label: 'Impressions', value: overview.totalImpressions.toLocaleString(), color: 'text-purple-700' },
+  { label: 'CTR', value: overview.ctr + '%' },
+  { label: 'Avg Position', value: overview.avgPosition },
+  { label: 'Pages Tracked', value: overview.pageCount },
+  { label: 'Keywords', value: overview.keywordCount },
+];
+---
+
+<Layout title={`${client.name} - SEO Dashboard v2`}>
+  <!-- Client Header -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-4">
+      <div>
+        <h2 class="text-xl sm:text-3xl font-bold text-gray-900">{client.name}</h2>
+        <p class="text-sm sm:text-lg text-gray-600 mt-1">{client.domain}</p>
+        <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2">{client.industry}</p>
+      </div>
+      <div class="sm:text-right">
+        <p class="text-xs text-gray-400">Google Search Console</p>
+        <p class="text-xs text-gray-400 mt-0.5">{overview.startDate} – {overview.endDate}</p>
+        <p class="text-xs text-blue-500 mt-1 admin-only hidden">
+          <a href="/cs/">View v1 dashboard</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overview Metrics -->
+  <div class="mb-6">
+    <MetricsGrid metrics={metrics} />
+  </div>
+
+  <!-- Traffic Trend Chart (90 days) -->
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+    <TrendChart client:load data={trend} title="Clicks & Impressions (90 days)" />
+  </div>
+
+  <!-- Position Movers -->
+  {movers.length > 0 && (
+    <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
+      <SectionHeader title="Position Movers" subtitle="Last 30 days" count={movers.length} />
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {movers.slice(0, 10).map(m => {
+          const isUp = m.change > 0;
+          const urlPath = new URL(m.page_url).pathname;
+          const shortName = urlPath === '/' ? 'Homepage' :
+            urlPath.replace(/^\/|\/$/g, '').split('/').pop()?.replace(/-/g, ' ')
+              .replace(/\b\w/g, (c: string) => c.toUpperCase()) || urlPath;
+          return (
+            <div class={`flex items-center gap-3 p-2.5 rounded-lg ${isUp ? 'bg-green-50' : 'bg-red-50'}`}>
+              <span class={`text-lg font-bold ${isUp ? 'text-green-600' : 'text-red-600'}`}>
+                {isUp ? '↑' : '↓'}{Math.abs(m.change).toFixed(1)}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-900 truncate">{shortName}</p>
+                <p class="text-xs text-gray-500">
+                  {m.previousPos} → {m.currentPos} · {m.currentClicks} clicks
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+  <!-- Rankings: Google Page 1 (positions 1-10) -->
+  {page1Pages.length > 0 && (
+    <div class="mb-6">
+      <SectionHeader
+        title="Google Page 1"
+        color="text-green-700"
+        count={page1Pages.length}
+        subtitle={`${top5Count} in top 5, ${pos6to10Count} positions 6-10`}
+      />
+      {page1Pages.map((page, i) => (
+        <PageRow
+          page={page}
+          index={i}
+          showReport={true}
+          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
+        />
+      ))}
+    </div>
+  )}
+
+  <!-- Rankings: Google Page 2 (positions 11-20) -->
+  {page2Pages.length > 0 && (
+    <div class="mb-6">
+      <SectionHeader
+        title="Google Page 2"
+        color="text-orange-600"
+        count={page2Pages.length}
+        subtitle="Opportunity zone — close to page 1"
+      />
+      {page2Pages.map((page, i) => (
+        <PageRow
+          page={page}
+          index={100 + i}
+          showReport={true}
+          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
+        />
+      ))}
+    </div>
+  )}
+
+  <!-- Rankings: Google Page 3+ (positions 21-30) -->
+  {page3Pages.length > 0 && (
+    <div class="mb-6">
+      <SectionHeader
+        title="Google Page 3+"
+        color="text-red-600"
+        count={page3Pages.length}
+        subtitle="Low visibility"
+      />
+      {page3Pages.map((page, i) => (
+        <PageRow
+          page={page}
+          index={200 + i}
+          showReport={true}
+          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
+        />
+      ))}
+    </div>
+  )}
+
+  <!-- Footer -->
+  <div class="text-center text-xs text-gray-400 mt-8 mb-4">
+    <p>Data: Google Search Console · Last updated: {overview.endDate}</p>
+  </div>
+</Layout>

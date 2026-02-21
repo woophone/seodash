@@ -13,6 +13,11 @@ yarn-error.log*
 pnpm-debug.log*
 
 
+# database (build artifact, not committed)
+db/*.db
+db/*.db-wal
+db/*.db-shm
+
 # environment variables
 .env
 .env.production

@@ -1,0 +1,96 @@
+---
+import KeywordsTable from './KeywordsTable.astro';
+
+interface PageData {
+  page_url: string;
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+  keywords?: any[];
+  googlePage?: number;
+}
+
+interface Props {
+  page: PageData;
+  index: number;
+  showReport?: boolean;
+  reportHref?: string;
+  showWorkLog?: boolean;
+  workLogHref?: string;
+}
+
+const { page, index, showReport = false, reportHref, showWorkLog = false, workLogHref } = Astro.props;
+
+function posColor(pos: number) {
+  if (pos <= 5) return 'bg-green-100 text-green-800';
+  if (pos <= 10) return 'bg-amber-100 text-amber-800';
+  if (pos <= 20) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-700';
+}
+
+// Extract short name from URL
+const urlPath = new URL(page.page_url).pathname;
+const shortName = urlPath === '/' ? 'Homepage' :
+  urlPath.replace(/^\/|\/$/g, '').split('/').pop()?.replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase()) || urlPath;
+
+const hasKeywords = page.keywords && page.keywords.length > 0;
+const toggleId = `page-kw-${index}`;
+---
+
+<div class="bg-white rounded-lg shadow-sm mb-2 overflow-hidden">
+  <!-- Page row header -->
+  <div
+    class={`flex items-center gap-2 sm:gap-4 px-3 sm:px-4 py-2.5 ${hasKeywords ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+    data-toggle={hasKeywords ? toggleId : undefined}
+  >
+    <!-- Expand arrow -->
+    {hasKeywords && (
+      <span class="toggle-arrow text-gray-400 text-xs transition-transform flex-shrink-0">&#9654;</span>
+    )}
+    {!hasKeywords && <span class="w-3 flex-shrink-0"></span>}
+
+    <!-- Page name + URL -->
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-medium text-gray-900 truncate">{shortName}</p>
+      <p class="text-xs text-gray-400 truncate hidden sm:block">{urlPath}</p>
+    </div>
+
+    <!-- Metrics -->
+    <div class="flex items-center gap-3 sm:gap-4 text-sm flex-shrink-0">
+      <div class="text-right">
+        <span class="font-medium">{page.clicks}</span>
+        <span class="text-xs text-gray-400 ml-0.5 hidden sm:inline">clicks</span>
+      </div>
+      <div class="text-right hidden sm:block">
+        <span class="text-gray-500">{page.impressions.toLocaleString()}</span>
+        <span class="text-xs text-gray-400 ml-0.5">imp</span>
+      </div>
+      <div class="text-right hidden sm:block">
+        <span class="text-gray-500">{page.ctr}%</span>
+      </div>
+      <span class={`inline-block px-2 py-0.5 rounded text-xs font-medium ${posColor(page.position)}`}>
+        {page.position.toFixed(1)}
+      </span>
+      {showReport && reportHref && (
+        <a href={reportHref} class="text-blue-600 hover:text-blue-800 text-xs font-medium">Report</a>
+      )}
+      {showWorkLog && workLogHref && (
+        <a href={workLogHref} class="text-gray-400 hover:text-gray-600 text-xs admin-only hidden">Work Log</a>
+      )}
+    </div>
+  </div>
+
+  <!-- Expandable keywords -->
+  {hasKeywords && (
+    <div id={toggleId} class="hidden border-t border-gray-100 px-3 sm:px-4 py-3 bg-gray-50/50">
+      <KeywordsTable
+        keywords={page.keywords}
+        expandable={page.keywords.length > 10}
+        initialShow={10}
+        tableId={`p${index}`}
+      />
+    </div>
+  )}
+</div>

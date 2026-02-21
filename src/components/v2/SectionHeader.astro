@@ -1,0 +1,20 @@
+---
+interface Props {
+  title: string;
+  count?: number;
+  color?: string;
+  subtitle?: string;
+}
+
+const { title, count, color = 'text-gray-900', subtitle } = Astro.props;
+---
+
+<div class="flex items-baseline gap-2 mb-3">
+  <h3 class={`text-lg font-bold ${color}`}>{title}</h3>
+  {count !== undefined && (
+    <span class="text-sm text-gray-400">({count})</span>
+  )}
+  {subtitle && (
+    <span class="text-sm text-gray-500">{subtitle}</span>
+  )}
+</div>
