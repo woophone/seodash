@@ -6,12 +6,13 @@
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "build:v2": "npm run db:init && (npm run db:fetch || echo 'GSC fetch skipped — no credentials') && astro build",
+    "build:v2": "npm run db:init && (npm run db:fetch || echo 'GSC fetch skipped — no credentials') && (npm run db:migrate || echo 'Migration skipped') && astro build",
     "preview": "astro preview",
     "astro": "astro",
     "db:init": "tsx scripts/init-db.js",
     "db:fetch": "tsx scripts/fetch-gsc.js --client cs",
-    "db:backfill": "tsx scripts/fetch-gsc.js --client cs --backfill"
+    "db:backfill": "tsx scripts/fetch-gsc.js --client cs --backfill",
+    "db:migrate": "tsx scripts/migrate-v1-audits.js"
   },
   "dependencies": {
     "@astrojs/react": "^3.6.2",
