@@ -100,7 +100,7 @@ const metrics = [
   <!-- Position Movers -->
   {movers.length > 0 && (
     <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-      <SectionHeader title="Position Movers" subtitle="Last 30 days" count={movers.length} />
+      <SectionHeader title="Ranking Changes" subtitle="Last 30 days — pages with the biggest position movements" count={movers.length} />
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {movers.slice(0, 10).map(m => {
           const isUp = m.change > 0;
@@ -116,13 +116,16 @@ const metrics = [
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">{shortName}</p>
                 <p class="text-xs text-gray-500">
-                  {m.previousPos} → {m.currentPos} · {m.currentClicks} clicks
+                  Rank {m.previousPos} → {m.currentPos} · {m.currentClicks} clicks
                 </p>
               </div>
             </div>
           );
         })}
       </div>
+      <p class="text-xs text-gray-400 mt-3">
+        Rank = average Google search position. Lower is better (rank 1 = top result). Green = improved, red = declined.
+      </p>
     </div>
   )}
 
