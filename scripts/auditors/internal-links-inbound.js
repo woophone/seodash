@@ -152,52 +152,5 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
     errors: errors.length > 0 ? errors : undefined,
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (uniqueSourcePages === 0) {
-    actionItems.push({
-      severity: 'critical',
-      title: 'Complete orphan page — zero inbound internal links',
-      detail: 'No other page on the site links to this URL. Orphan pages are nearly invisible to search engines because they cannot be discovered through crawling.',
-      currentState: '0 inbound internal links',
-      targetState: 'At least 3-5 contextual internal links from related posts',
-    });
-  } else if (isOrphan) {
-    actionItems.push({
-      severity: 'high',
-      title: `Near-orphan: only ${uniqueSourcePages} page(s) link here`,
-      detail: `With only ${uniqueSourcePages} source page(s), this URL has a critical linking deficit. Google uses internal link signals for crawl priority and topic authority.`,
-      currentState: `${uniqueSourcePages} linking page(s)`,
-      targetState: 'At least 5 contextual internal links',
-    });
-  }
-
-  // Check anchor text quality
-  if (uniqueAnchorTexts.length > 0) {
-    const genericAnchors = uniqueAnchorTexts.filter(t =>
-      /^(click here|here|read more|learn more|link|this)$/i.test(t.trim())
-    );
-    if (genericAnchors.length > 0) {
-      actionItems.push({
-        severity: 'medium',
-        title: `${genericAnchors.length} link(s) use generic anchor text`,
-        detail: `Generic anchors like "${genericAnchors[0]}" provide no topical signal. Descriptive anchor text helps both users and search engines understand the linked page's topic.`,
-        currentState: `Generic anchors: ${genericAnchors.join(', ')}`,
-        targetState: 'Descriptive, keyword-relevant anchor text',
-      });
-    }
-  }
-
-  if (errors.length > 0) {
-    actionItems.push({
-      severity: 'low',
-      title: 'Some WP REST API queries failed',
-      detail: errors.join('; '),
-      currentState: 'Partial scan — results may be incomplete',
-      targetState: 'Full scan without errors',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

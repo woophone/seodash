@@ -74,7 +74,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
       summary: `Failed to fetch page: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
@@ -280,68 +279,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     aboutLink: hasAboutLink,
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (!authorFound) {
-    actionItems.push({
-      severity: 'critical',
-      title: 'No author attribution found',
-      detail: 'For YMYL content (health/mental health), author attribution is essential. Google uses author signals as a core E-E-A-T factor.',
-      currentState: 'No visible author name or byline',
-      targetState: 'Visible author byline with credentials and link to bio page',
-    });
-  }
-
-  if (credentialsFound.length === 0) {
-    actionItems.push({
-      severity: 'high',
-      title: 'No professional credentials displayed',
-      detail: 'YMYL health content should clearly display the author\'s professional credentials (e.g., M.A., LMFT, Ph.D.).',
-      currentState: 'No credentials visible',
-      targetState: 'Author credentials (degree, license) displayed near byline',
-    });
-  }
-
-  if (!disclaimerFound) {
-    actionItems.push({
-      severity: 'high',
-      title: 'No medical/professional disclaimer',
-      detail: 'YMYL health content should include a disclaimer stating the content is for informational purposes and not a substitute for professional advice.',
-      currentState: 'No disclaimer found',
-      targetState: 'Professional disclaimer visible on page',
-    });
-  }
-
-  if (!hasPersonSchema) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'No Person schema for author',
-      detail: 'Adding Person schema with the author\'s name, credentials, and sameAs links strengthens E-E-A-T signals in structured data.',
-      currentState: 'No Person schema',
-      targetState: 'Person schema with name, credentials, jobTitle, sameAs',
-    });
-  }
-
-  if (!dateModified && !datePublished) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'No publication or modification dates',
-      detail: 'Displaying dates signals content freshness. For health content, this assures users the information is current.',
-      currentState: 'No dates found',
-      targetState: 'Visible published and last-modified dates',
-    });
-  }
-
-  if (!hasAboutLink) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No link to author bio or about page',
-      detail: 'Linking to an author bio page creates a verifiable chain of expertise — a strong E-E-A-T signal.',
-      currentState: 'No about/bio link found',
-      targetState: 'Author name links to dedicated bio page',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

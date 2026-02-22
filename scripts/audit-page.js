@@ -97,39 +97,6 @@ function upsertAuditRun(db, clientId, pageUrl, dimensionId, result) {
   );
 }
 
-function replaceActionItems(db, clientId, pageUrl, dimensionId, actionItems) {
-  // Delete existing action items for this dimension
-  db.prepare(
-    'DELETE FROM action_items WHERE client_id = ? AND page_url = ? AND dimension_id = ?'
-  ).run(clientId, pageUrl, dimensionId);
-
-  if (!actionItems || actionItems.length === 0) return 0;
-
-  const insert = db.prepare(`
-    INSERT INTO action_items (client_id, page_url, dimension_id, severity, title, detail, current_state, target_state, status, metadata)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
-  `);
-
-  const insertAll = db.transaction((items) => {
-    for (const item of items) {
-      insert.run(
-        clientId,
-        pageUrl,
-        dimensionId,
-        item.severity || 'medium',
-        item.title,
-        item.detail || null,
-        item.currentState || null,
-        item.targetState || null,
-        item.metadata ? JSON.stringify(item.metadata) : null
-      );
-    }
-  });
-
-  insertAll(actionItems);
-  return actionItems.length;
-}
-
 // --- Run a single auditor ---
 async function runAuditor(db, clientId, pageUrl, dimensionId, options) {
   console.log(`\n${'='.repeat(60)}`);
@@ -149,29 +116,18 @@ async function runAuditor(db, clientId, pageUrl, dimensionId, options) {
       summary: `Audit failed: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 
-  // Persist results
+  // Phase 1: persist findings only — NO action items
   upsertAuditRun(db, clientId, pageUrl, dimensionId, result);
-  const actionCount = replaceActionItems(db, clientId, pageUrl, dimensionId, result.actionItems || []);
 
   // Print summary
   console.log(`  Score:   ${result.score !== null && result.score !== undefined ? result.score : 'N/A'}`);
   console.log(`  Summary: ${result.summary}`);
-  console.log(`  Actions: ${actionCount} action item(s)`);
   console.log(`  Time:    ${elapsed}s`);
-
-  if (result.actionItems && result.actionItems.length > 0) {
-    console.log('  Action items:');
-    for (const item of result.actionItems) {
-      const icon = item.severity === 'critical' ? '!!' : item.severity === 'high' ? '!' : '-';
-      console.log(`    [${icon}] (${item.severity}) ${item.title}`);
-    }
-  }
 
   return result;
 }

@@ -91,7 +91,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
       summary: `Failed to fetch page: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
@@ -165,85 +164,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     })),
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (validBlocks.length === 0) {
-    actionItems.push({
-      severity: 'high',
-      title: 'No JSON-LD schema markup found',
-      detail: 'The page has no structured data. Schema markup helps search engines understand page content and can enable rich results in SERPs.',
-      currentState: 'No JSON-LD blocks',
-      targetState: 'At least WebPage/Article + Person/Organization schema',
-    });
-  }
-
-  for (const type of missingRecommended) {
-    let severity = 'medium';
-    let detail = '';
-
-    switch (type) {
-      case 'Article':
-        detail = 'Article schema enables rich results and helps Google understand the content type, author, and publication date.';
-        severity = 'high';
-        break;
-      case 'Person':
-        detail = 'Person schema for the author strengthens E-E-A-T signals, especially important for YMYL content.';
-        severity = 'high';
-        break;
-      case 'Organization':
-        detail = 'Organization schema helps Google associate the page with the business entity.';
-        severity = 'medium';
-        break;
-      case 'FAQPage':
-        detail = 'FAQPage schema can enable FAQ rich results in SERPs, increasing visibility and click-through rates.';
-        severity = 'low';
-        break;
-      case 'BreadcrumbList':
-        detail = 'BreadcrumbList schema enables breadcrumb display in search results, improving navigation context.';
-        severity = 'low';
-        break;
-      default:
-        detail = `${type} schema is recommended for this type of content.`;
-    }
-
-    actionItems.push({
-      severity,
-      title: `Missing ${type} schema`,
-      detail,
-      currentState: `No ${type} schema found`,
-      targetState: `Add ${type} JSON-LD schema`,
-    });
-  }
-
-  if (parseErrors.length > 0) {
-    actionItems.push({
-      severity: 'high',
-      title: `${parseErrors.length} JSON-LD block(s) have parse errors`,
-      detail: `${parseErrors.length} script blocks with type="application/ld+json" contain invalid JSON. Search engines will ignore malformed schema.`,
-      currentState: `${parseErrors.length} invalid JSON-LD block(s)`,
-      targetState: 'All JSON-LD blocks valid',
-      metadata: { errors: parseErrors.map(e => e._parseError) },
-    });
-  }
-
-  if (dateModified && !dateModifiedRecent) {
-    actionItems.push({
-      severity: 'medium',
-      title: `dateModified is ${dateModifiedAge} days old`,
-      detail: `The schema dateModified (${dateModified}) is over a year old. Updating it signals content freshness to search engines.`,
-      currentState: `dateModified: ${dateModified} (${dateModifiedAge} days ago)`,
-      targetState: 'dateModified within last 12 months',
-    });
-  } else if (!dateModified && validBlocks.length > 0) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No dateModified in schema',
-      detail: 'Adding dateModified to the schema helps search engines assess content freshness.',
-      currentState: 'No dateModified property',
-      targetState: 'dateModified reflecting last content update',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

@@ -76,7 +76,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
       summary: `Failed to fetch page: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
@@ -149,56 +148,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     })),
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (!mostRecent) {
-    actionItems.push({
-      severity: 'high',
-      title: 'No content dates found',
-      detail: 'No dateModified, datePublished, or visible dates were found on the page. Content freshness signals are missing entirely.',
-      currentState: 'No dates detected',
-      targetState: 'dateModified in schema + visible "Last updated" date on page',
-    });
-  } else if (ageDays > 365) {
-    actionItems.push({
-      severity: 'high',
-      title: `Content is ${ageDays > 730 ? 'very ' : ''}stale (${ageDays} days old)`,
-      detail: `Last modification was ${Math.round(ageDays / 30)} months ago. For YMYL health content, Google expects regular updates to ensure accuracy.`,
-      currentState: `Last modified ${ageDays} days ago`,
-      targetState: 'Updated within last 6 months',
-    });
-  } else if (ageDays > 180) {
-    actionItems.push({
-      severity: 'medium',
-      title: `Content aging (${ageDays} days since last update)`,
-      detail: `Content was last modified ${Math.round(ageDays / 30)} months ago. Consider reviewing and updating to maintain freshness signals.`,
-      currentState: `Last modified ${ageDays} days ago`,
-      targetState: 'Updated within last 6 months',
-    });
-  }
-
-  // Check if dateModified is in schema
-  if (!dates.schemaModified) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'No dateModified in schema markup',
-      detail: 'Adding dateModified to JSON-LD schema signals content freshness to search engines in a machine-readable format.',
-      currentState: 'No dateModified in JSON-LD',
-      targetState: 'dateModified in Article/WebPage schema, updated on each content edit',
-    });
-  }
-
-  // Check if there is a visible date on the page
-  if (!dates.visibleDate && !dates.metaModified && !dates.metaPublished) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No visible date displayed to users',
-      detail: 'Displaying a "Last updated" date on YMYL content builds user trust and signals freshness.',
-      currentState: 'No visible date on page',
-      targetState: 'Visible "Last updated: [date]" near content',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

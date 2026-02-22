@@ -18,7 +18,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
       summary: `Failed to fetch page: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
@@ -125,69 +124,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     responsiveImages: withSrcset.length,
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (missingAlt.length > 0) {
-    actionItems.push({
-      severity: 'high',
-      title: `${missingAlt.length} image(s) missing alt attribute`,
-      detail: `Images without alt attributes are inaccessible to screen readers and lose image SEO value. Sources: ${missingAlt.slice(0, 3).map(i => i.src.split('/').pop()).join(', ')}`,
-      currentState: `${missingAlt.length} images without alt attribute`,
-      targetState: 'All images have descriptive alt text',
-      metadata: { images: missingAlt.map(i => i.src.substring(0, 200)) },
-    });
-  }
-
-  if (emptyAlt.length > 0) {
-    actionItems.push({
-      severity: 'medium',
-      title: `${emptyAlt.length} image(s) with empty alt text`,
-      detail: 'Empty alt="" is appropriate for decorative images but should have descriptive text for content images.',
-      currentState: `${emptyAlt.length} images with alt=""`,
-      targetState: 'Decorative images: alt="". Content images: descriptive alt text',
-    });
-  }
-
-  if (missingDimensions.length > 0) {
-    actionItems.push({
-      severity: 'medium',
-      title: `${missingDimensions.length} image(s) missing width/height`,
-      detail: 'Images without explicit dimensions cause Cumulative Layout Shift (CLS) as the browser cannot reserve space before the image loads.',
-      currentState: `${missingDimensions.length} images without width/height`,
-      targetState: 'All images have width and height attributes',
-    });
-  }
-
-  if (!hasOgImage) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'No og:image meta tag',
-      detail: 'Social sharing previews (Facebook, Twitter, LinkedIn) will lack a featured image without og:image.',
-      currentState: 'No og:image tag',
-      targetState: 'og:image with 1200x630 image',
-    });
-  }
-
-  if (images.length === 0) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No images on page',
-      detail: 'Pages with relevant images tend to engage users better. Consider adding illustrative or informational images.',
-      currentState: '0 images',
-      targetState: 'At least 1-2 relevant images in content area',
-    });
-  }
-
-  if (noLazyLoading.length > 3) {
-    actionItems.push({
-      severity: 'low',
-      title: `${noLazyLoading.length} image(s) without lazy loading`,
-      detail: 'Images below the fold should use loading="lazy" to improve initial page load performance.',
-      currentState: `${noLazyLoading.length} images without lazy loading`,
-      targetState: 'Below-fold images use loading="lazy"',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

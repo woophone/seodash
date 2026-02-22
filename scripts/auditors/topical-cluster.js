@@ -64,7 +64,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
       summary: `Failed to fetch page: ${err.message}`,
       score: null,
       findings: { error: err.message },
-      actionItems: [],
     };
   }
 
@@ -170,47 +169,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     },
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (outboundCount === 0) {
-    actionItems.push({
-      severity: 'high',
-      title: 'No contextual internal links in content',
-      detail: 'The content area has zero outbound internal links. Internal links create topical clusters that signal authority to search engines.',
-      currentState: '0 internal links in content',
-      targetState: `${Math.max(2, Math.round(wordCount / 500))} contextual internal links to related pages`,
-    });
-  } else if (wordCount > 0 && linksPer1000 < 2) {
-    const targetLinks = Math.max(2, Math.round((wordCount / 1000) * 2));
-    actionItems.push({
-      severity: 'medium',
-      title: `Low internal link density (${linksPer1000.toFixed(1)}/1000 words)`,
-      detail: `For YMYL content, aim for 2-4 internal links per 1000 words. Current density is ${linksPer1000.toFixed(1)}/1000 words.`,
-      currentState: `${contextualInternalLinks.length} links in ${wordCount} words (${linksPer1000.toFixed(1)}/1000)`,
-      targetState: `${targetLinks}+ contextual internal links (2-4 per 1000 words)`,
-    });
-  }
-
-  if (linksToTrackedPages.length === 0 && internalLinks.length > 0) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No links to high-value tracked pages',
-      detail: 'The internal links present do not point to any pages we track in GSC. Consider linking to your most important content.',
-      currentState: '0 links to tracked pages',
-      targetState: 'At least 1-2 links to high-value pages',
-    });
-  }
-
-  if (externalLinks.length === 0 && wordCount > 500) {
-    actionItems.push({
-      severity: 'low',
-      title: 'No external citations',
-      detail: 'For YMYL health content, citing authoritative external sources (NIH, APA, peer-reviewed journals) strengthens E-E-A-T.',
-      currentState: '0 external links',
-      targetState: '1-3 citations to authoritative sources',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

@@ -9,28 +9,29 @@ A multi-client SEO dashboard framework. Each client gets their own route (e.g., 
 - **Nginx** with custom config: basic auth on root, X-Robots-Tag, try_files
 - **Coolify** for deployment at `seo.ihostwp.com`
 
-## Client Framework Pattern
-Each client follows this structure:
-- **Data file**: `src/data/{client-slug}-data.js` — all client data, GSC-verified
-- **Dashboard page**: `src/pages/{slug}.astro` — client-facing rankings overview
-- **Per-page reports**: `src/pages/{slug}/pages/{page-slug}.astro` — detailed page-level SEO reports
-- **Client index**: `src/data/clients-index.js` — registry for owner dashboard
+## V2 Client Framework Pattern
+Each client uses SQLite as source of truth, with automated audit runners and static Astro builds.
 
-### Dashboard sections (client-facing):
-1. Client header + data source attribution
-2. Key metrics (clicks, impressions, page 1 count, page 2 count)
-3. Rankings table with "Report" column (links to per-page reports, green check / red X)
-4. Site-wide issues (YMYL critical only — things affecting ALL pages)
-5. Considerations (expandable strategic findings)
-6. Action plan (phased)
+### Data layer:
+- **SQLite database**: `db/seodash.db` — all GSC data, audit runs, action items
+- **Schema**: `db/schema.sql` — clients, page_snapshots, keyword_snapshots, audit_dimensions, audit_runs, action_items
+- **GSC fetch**: `scripts/fetch-gsc.js` — pulls daily snapshots into SQLite
+- **Audit runners**: `scripts/audit-page.js` — runs 12 automated auditors per page, writes to SQLite
 
-### Per-page report sections:
+### Presentation layer:
+- **V2 dashboard**: `src/pages/v2/{slug}/index.astro` — time range selectors, sortable columns, per-page links
+- **V2 per-page reports**: `src/pages/v2/{slug}/pages/[slug].astro` — metrics, charts, tiered audit cards, keywords
+- **V2 components**: `src/components/v2/` — AuditCard, AuditDetail, ActionItemList, MetricsGrid, KeywordsTable, etc.
+
+### Per-page report layout:
 1. Page header + URL + GSC metrics
-2. Keywords table (all GSC keywords for that page)
-3. PageSpeed / Core Web Vitals (desktop + mobile)
-4. Content audit (word count, heading structure, internal links)
-5. On-page issues (specific to THIS page only)
-6. Recommendations
+2. Time series charts (clicks, impressions, position)
+3. Tiered audit cards (16 dimensions across 6 tiers — see `memory/v2-system.md`)
+4. Action items list (pending / completed)
+5. Keywords table (all GSC keywords for that page)
+
+### V1 pages (legacy):
+V1 pages at `/cs/` still exist using `src/data/cs-data.js`. They are NOT deleted — V2 at `/v2/cs/` will replace them when ready.
 
 ## Data Integrity Rules
 - **ONLY use GSC-verified data** for rankings, positions, clicks, impressions
@@ -83,28 +84,25 @@ Git push to `main` on `github.com/woophone/seodash` triggers Coolify auto-deploy
 - Auth token in env: `COOLIFY_API_TOKEN`
 - Or use: `curl -s -X POST "http://89.167.46.71:8000/api/v1/applications/lw44s8gkos84wgggog8okw08/restart" -H "Authorization: Bearer ${COOLIFY_API_TOKEN}" -H "Content-Type: application/json"`
 
-## Per-Page Report Workflow (PROJECT RULE)
-For every page report, ALWAYS follow this two-layer process:
+## Per-Page Workflow (V2 — Three Phases)
 
-### Layer 1: claude-seo skill audit
-Run `/seo page` (or `seo-page` skill) on the live HTML first. This provides:
-- Standardized on-page SEO scoring
-- Content quality assessment
-- Schema detection and validation with ready-to-use JSON-LD
-- Image audit
-- Technical meta tag analysis
-- GEO (AI search readiness) assessment
+Full details in `memory/v2-system.md` and `memory/page-audit-framework.md`.
 
-### Layer 2: GSC data overlay (YOU own this)
-Layer GSC API data on top of the skill output. This is what makes our reports unique:
-- Real keyword data (queries, clicks, impressions, CTR, position)
-- Time series trends (impression/click history)
-- SERP feature landscape (from Semrush where available)
-- Content area vs template distinction (apply page-audit-framework.md)
-- Narrative framing (strength-first, opportunity-focused)
+### Phase 1: Diagnosis (automated)
+Run `npx tsx scripts/audit-page.js --client cs --url "/path/" --all`. Writes findings to `audit_runs` — NO action items. Client-facing audit cards show what was found and why it matters. They do NOT show instructions, recommendations, or to-do items. We report and educate — we don't prescribe.
 
-### The final report is OURS
-The claude-seo skill provides a starting checklist. The GSC data, SERP context, content area scoping, and client narrative are what make the report actionable. Always cross-validate skill findings against our framework in `memory/page-audit-framework.md`.
+### Phase 2: Remedy Planning (per dimension, admin-only)
+Pick a specific dimension to work on. Translate the Phase 1 finding into specific, executable action items in `action_items` table. Items appear on the remedy page (`/v2/cs/pages/{slug}/remedy/`) — visible only via `?user=admin`. Each item has exact details: WP post IDs, anchor text, new copy, JSON-LD code, etc.
+
+### Phase 3: Execution
+Execute pending items from the remedy page. Mark completed in SQLite. Rebuild and deploy. The remedy page becomes proof-of-work showing what was done.
+
+### Key rules:
+- Phase 1 auditors write findings only — they do NOT create action items (TODO: auditor code needs updating)
+- Phase 2 runs per dimension, not all at once
+- The remedy page shows ALL dimensions with status (clean / pending / planned / complete)
+- SEO methodology in `memory/page-audit-framework.md` governs interpretation throughout
+- SEO skills (`seo-page`, `seo-content`, `seo-schema`) are supplementary, not the primary workflow
 
 ## Key Decisions
 - Stripped Semrush data, competitor battle cards — chaotic, unverified
@@ -112,8 +110,9 @@ The claude-seo skill provides a starting checklist. The GSC data, SERP context, 
 - Dashboard = global overview only (YMYL site-wide issues, considerations, action plan)
 - Always push back on user requests that don't serve the client's interest
 - This framework will be reused for future clients
-
-## Hetzner/Cloudflare Issue
-Hetzner IPs are blocked by Cloudflare. Cannot directly fetch client sites.
-Workaround: Use Wayback Machine archives or GSC API data.
-TODO: Set up user's home laptop as residential IP proxy.
+- **V2**: SQLite is the single source of truth — no more JS data files for new work
+- **V2**: 12 automated auditors for diagnosis — but they produce findings, not action items
+- **V2**: Action items created only in Phase 2 (remedy planning), live in SQLite `action_items` table
+- **V2**: Remedy page (admin-only) is the work-order — one per page, all dimensions, status tracking
+- **V2**: Client sees findings + education, never instructions or to-do items
+- **V2**: Origin IP (curl --resolve) bypasses Cloudflare — Wayback Machine no longer needed

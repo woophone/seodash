@@ -89,7 +89,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
   let score = 100;
   const checks = [];
-  const actionItems = [];
 
   // --- 1. Fetch robots.txt ---
   let robotsTxt = null;
@@ -113,13 +112,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
       if (robotsBlocked) {
         score -= 30;
-        actionItems.push({
-          severity: 'critical',
-          title: 'Page blocked by robots.txt',
-          detail: `The path "${path}" is disallowed by robots.txt rules. Search engines will not crawl this page.`,
-          currentState: 'Blocked by robots.txt',
-          targetState: 'Allowed by robots.txt (or intentionally blocked)',
-        });
       }
     } else {
       checks.push({
@@ -153,13 +145,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
     if (statusCode !== 200) {
       score -= 20;
-      actionItems.push({
-        severity: 'critical',
-        title: `Page returns HTTP ${statusCode}`,
-        detail: `Expected HTTP 200 but got ${statusCode}. ${statusCode === 301 || statusCode === 302 ? 'The page redirects elsewhere.' : statusCode === 404 ? 'Page not found.' : 'Unexpected status code.'}`,
-        currentState: `HTTP ${statusCode}`,
-        targetState: 'HTTP 200',
-      });
     }
   } catch (err) {
     checks.push({
@@ -190,13 +175,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
       if (hasNoindex) {
         score -= 40;
-        actionItems.push({
-          severity: 'critical',
-          title: 'Page has noindex meta tag',
-          detail: `The page has <meta name="robots" content="${metaRobots}">. This tells search engines NOT to index this page. It will not appear in search results.`,
-          currentState: `meta robots: ${metaRobots}`,
-          targetState: 'Remove noindex (if page should be indexed)',
-        });
       }
     } else {
       checks.push({
@@ -218,13 +196,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
         });
         if (!hasNoindex) {
           score -= 40;
-          actionItems.push({
-            severity: 'critical',
-            title: 'Googlebot-specific noindex tag',
-            detail: `A <meta name="googlebot" content="${gbContent}"> tag blocks Google specifically from indexing this page.`,
-            currentState: `Googlebot meta: ${gbContent}`,
-            targetState: 'Remove Googlebot noindex',
-          });
         }
       }
     }
@@ -247,13 +218,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
       if (!isCorrect) {
         score -= 10;
-        actionItems.push({
-          severity: 'medium',
-          title: 'Canonical URL mismatch',
-          detail: `Canonical points to "${canonicalUrl}" instead of "${pageUrl}". This may cause Google to index the wrong URL or consolidate signals away from this page.`,
-          currentState: `Canonical: ${canonicalUrl}`,
-          targetState: `Canonical: ${pageUrl}`,
-        });
       }
     } else {
       checks.push({
@@ -262,13 +226,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
         detail: 'No canonical link tag found',
       });
       score -= 10;
-      actionItems.push({
-        severity: 'medium',
-        title: 'Missing canonical tag',
-        detail: 'No self-referencing canonical URL found. This leaves the page vulnerable to duplicate content issues.',
-        currentState: 'No canonical tag',
-        targetState: 'Self-referencing canonical URL',
-      });
     }
   }
 
@@ -298,13 +255,6 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
       if (!inSitemap) {
         score -= 10;
-        actionItems.push({
-          severity: 'medium',
-          title: 'Page not in sitemap.xml',
-          detail: `The page URL was not found in the sitemap. While not required, sitemap inclusion helps search engines discover and crawl pages.`,
-          currentState: 'Not in sitemap',
-          targetState: 'Listed in sitemap.xml',
-        });
       }
     } else {
       checks.push({
@@ -323,10 +273,11 @@ export default function audit(db, clientId, pageUrl, options = {}) {
 
   score = Math.max(0, Math.min(100, score));
 
-  const criticalIssues = actionItems.filter(a => a.severity === 'critical');
-  const summary = criticalIssues.length > 0
-    ? `CRITICAL: ${criticalIssues.map(a => a.title).join('; ')}. ${checks.filter(c => c.status === 'ok' || c.status === 'allowed' || c.status === 'included').length}/${checks.length} checks passed.`
-    : `${checks.filter(c => c.status === 'ok' || c.status === 'allowed' || c.status === 'included' || c.status === 'not_found').length}/${checks.length} crawlability checks passed. ${actionItems.length > 0 ? `${actionItems.length} issue(s) found.` : 'No issues.'}`;
+  const criticalChecks = checks.filter(c => c.status === 'blocked' || c.status === 'noindex');
+  const passedChecks = checks.filter(c => c.status === 'ok' || c.status === 'allowed' || c.status === 'included');
+  const summary = criticalChecks.length > 0
+    ? `CRITICAL: ${criticalChecks.map(c => c.detail).join('; ')}. ${passedChecks.length}/${checks.length} checks passed.`
+    : `${checks.filter(c => c.status === 'ok' || c.status === 'allowed' || c.status === 'included' || c.status === 'not_found').length}/${checks.length} crawlability checks passed. No issues.`;
 
   const findings = {
     checks,
@@ -337,5 +288,5 @@ export default function audit(db, clientId, pageUrl, options = {}) {
     inSitemap,
   };
 
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

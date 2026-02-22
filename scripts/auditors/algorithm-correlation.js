@@ -35,7 +35,6 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
       summary: `Insufficient data: only ${rows.length} data point(s). Need at least 7 days for correlation analysis.`,
       score: null,
       findings: { error: 'insufficient_data', dataPoints: rows.length },
-      actionItems: [],
     };
   }
 
@@ -142,44 +141,5 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
     dateRange,
   };
 
-  // Action items
-  const actionItems = [];
-
-  const correlatedUpdates = updates.filter(u => u.correlated);
-
-  if (correlatedCount >= 3) {
-    actionItems.push({
-      severity: 'critical',
-      title: 'Page affected by multiple Google algorithm updates',
-      detail: `${correlatedCount} confirmed algorithm updates caused >3 position changes. This page may have fundamental quality/compliance issues that make it vulnerable to core updates.`,
-      currentState: `${correlatedCount} correlated updates`,
-      targetState: 'Stable through algorithm updates',
-      metadata: { correlatedUpdates: correlatedUpdates.map(u => u.name) },
-    });
-  } else if (correlatedCount >= 1) {
-    actionItems.push({
-      severity: 'medium',
-      title: `Position changes correlated with ${correlatedCount} algorithm update(s)`,
-      detail: correlatedUpdates.map(u => {
-        const dir = u.delta > 0 ? 'worsened' : 'improved';
-        return `${u.name}: position ${dir} by ${Math.abs(u.delta)} places`;
-      }).join('. '),
-      currentState: `${correlatedCount} correlated update(s)`,
-      targetState: 'Stable through algorithm updates',
-    });
-  }
-
-  // Check for negative trend across updates
-  const negativeUpdates = correlatedUpdates.filter(u => u.delta > 0);
-  if (negativeUpdates.length >= 2) {
-    actionItems.push({
-      severity: 'high',
-      title: 'Consistent negative impact from algorithm updates',
-      detail: `${negativeUpdates.length} updates caused position drops. This suggests a pattern — the page may need content quality or E-E-A-T improvements to withstand future updates.`,
-      currentState: `${negativeUpdates.length} negative correlations`,
-      targetState: 'Neutral or positive response to updates',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

@@ -19,7 +19,6 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
       summary: `Insufficient data: only ${rows.length} data point(s). Need at least 2 days of position data.`,
       score: null,
       findings: { error: 'insufficient_data', dataPoints: rows.length },
-      actionItems: [],
     };
   }
 
@@ -75,54 +74,5 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
     dailyPositions: last30,
   };
 
-  // Action items
-  const actionItems = [];
-
-  if (volatility > 5) {
-    actionItems.push({
-      severity: 'high',
-      title: 'High ranking volatility detected',
-      detail: `Standard deviation of ${volatility.toFixed(1)} indicates unstable rankings. This page's position fluctuates significantly day-to-day.`,
-      currentState: `Volatility: ${volatility.toFixed(1)} std dev`,
-      targetState: 'Volatility < 3.0 std dev',
-    });
-  } else if (volatility > 3) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'Moderate ranking volatility',
-      detail: `Standard deviation of ${volatility.toFixed(1)} shows some instability. Monitor for patterns.`,
-      currentState: `Volatility: ${volatility.toFixed(1)} std dev`,
-      targetState: 'Volatility < 3.0 std dev',
-    });
-  }
-
-  if (yoyoDays > 3) {
-    actionItems.push({
-      severity: 'high',
-      title: `${yoyoDays} yo-yo days detected`,
-      detail: `Position swung more than 10 places in a single day ${yoyoDays} time(s). Max swing: ${maxSwing.toFixed(1)} positions. This suggests Google is uncertain about this page's ranking.`,
-      currentState: `${yoyoDays} yo-yo days, max swing ${maxSwing.toFixed(1)}`,
-      targetState: '0 yo-yo days',
-    });
-  } else if (yoyoDays > 0) {
-    actionItems.push({
-      severity: 'medium',
-      title: `${yoyoDays} yo-yo day(s) detected`,
-      detail: `Position swung more than 10 places ${yoyoDays} time(s). Max swing: ${maxSwing.toFixed(1)} positions.`,
-      currentState: `${yoyoDays} yo-yo day(s)`,
-      targetState: '0 yo-yo days',
-    });
-  }
-
-  if (avgPosition > 20) {
-    actionItems.push({
-      severity: 'low',
-      title: 'Average position beyond page 2',
-      detail: `Average position ${avgPosition.toFixed(1)} means this page typically appears beyond the second page of results.`,
-      currentState: `Avg position: ${avgPosition.toFixed(1)}`,
-      targetState: 'Avg position < 20',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

@@ -102,7 +102,6 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
       summary: 'No keyword data found for this page in the database.',
       score: null,
       findings: { error: 'no_keyword_data', keywordCount: 0 },
-      actionItems: [],
     };
   }
 
@@ -198,59 +197,5 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
     ),
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  if (coherence < 40) {
-    actionItems.push({
-      severity: 'high',
-      title: 'Very scattered search intent',
-      detail: `Only ${coherence}% of impressions align with the dominant intent (${dominantIntent}). Google may be confused about what this page is for, leading to diluted rankings across multiple intent types.`,
-      currentState: `${coherence}% intent coherence (${coherenceLabel})`,
-      targetState: '>70% coherence — page clearly serves one primary intent',
-      metadata: {
-        dominantIntent,
-        clusterSizes: Object.fromEntries(
-          Object.entries(clusters).map(([k, v]) => [k, v.keywords.length])
-        ),
-      },
-    });
-  } else if (coherence < 60) {
-    actionItems.push({
-      severity: 'medium',
-      title: 'Moderate intent scatter',
-      detail: `${coherence}% of impressions align with ${dominantIntent} intent. Some keyword dilution may be occurring.`,
-      currentState: `${coherence}% coherence`,
-      targetState: '>70% coherence',
-    });
-  }
-
-  // Check if transactional keywords exist but page seems informational
-  if (dominantIntent === 'informational' && clusters.transactional.keywords.length > 0) {
-    const transPct = totalImpressions > 0
-      ? Math.round((clusters.transactional.impressions / totalImpressions) * 100)
-      : 0;
-    if (transPct >= 15) {
-      actionItems.push({
-        severity: 'medium',
-        title: `${transPct}% of impressions have transactional intent`,
-        detail: `The page ranks for transactional queries like "${clusters.transactional.keywords[0]?.query}" but appears to be informational. Consider adding clear CTAs or creating a separate transactional page.`,
-        currentState: `Mixed informational + transactional (${transPct}% transactional)`,
-        targetState: 'Clear primary intent with appropriate page structure',
-      });
-    }
-  }
-
-  // Check for navigational queries on non-brand pages
-  if (clusters.navigational.keywords.length > 0 && dominantIntent !== 'navigational') {
-    actionItems.push({
-      severity: 'low',
-      title: `Brand/navigational queries detected (${clusters.navigational.keywords.length})`,
-      detail: `This page attracts some navigational queries: ${clusters.navigational.keywords.slice(0, 3).map(k => `"${k.query}"`).join(', ')}. This is normal for established content.`,
-      currentState: `${clusters.navigational.keywords.length} navigational keyword(s)`,
-      targetState: 'No action needed — informational',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }

@@ -116,7 +116,6 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
       summary: 'Cannot run: GOOGLE_CLOUD_API_KEY environment variable not set.',
       score: null,
       findings: { error: 'Missing GOOGLE_CLOUD_API_KEY' },
-      actionItems: [],
     };
   }
 
@@ -141,7 +140,6 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
       summary: `PageSpeed API failed for both strategies: ${errors.join('; ')}`,
       score: null,
       findings: { errors },
-      actionItems: [],
     };
   }
 
@@ -172,77 +170,5 @@ export default async function audit(db, clientId, pageUrl, options = {}) {
     errors: errors.length > 0 ? errors : undefined,
   };
 
-  // --- Action items ---
-  const actionItems = [];
-
-  // Check each CWV metric on mobile (mobile-first)
-  if (mobile) {
-    const cwvChecks = [
-      { key: 'lcp', name: 'Largest Contentful Paint (LCP)', unit: 'ms' },
-      { key: 'cls', name: 'Cumulative Layout Shift (CLS)', unit: '' },
-      { key: 'tbt', name: 'Total Blocking Time (TBT)', unit: 'ms' },
-      { key: 'fcp', name: 'First Contentful Paint (FCP)', unit: 'ms' },
-      { key: 'ttfb', name: 'Time to First Byte (TTFB)', unit: 'ms' },
-    ];
-
-    for (const check of cwvChecks) {
-      const metric = mobile[check.key];
-      if (!metric || metric.value === null) continue;
-
-      const status = getThresholdStatus(check.key, metric.value);
-      if (status === 'poor') {
-        actionItems.push({
-          severity: 'high',
-          title: `${check.name} is poor (mobile)`,
-          detail: `${check.name} value: ${metric.displayValue || metric.value + check.unit}. This is in the "poor" range and directly impacts user experience and search rankings.`,
-          currentState: metric.displayValue || `${metric.value}${check.unit}`,
-          targetState: `Under ${check.key === 'cls' ? '0.1' : check.key === 'lcp' ? '2.5s' : check.key === 'tbt' ? '200ms' : check.key === 'fcp' ? '1.8s' : '600ms'}`,
-          metadata: { metric: check.key, value: metric.value, strategy: 'mobile' },
-        });
-      } else if (status === 'needs-improvement') {
-        actionItems.push({
-          severity: 'medium',
-          title: `${check.name} needs improvement (mobile)`,
-          detail: `${check.name} value: ${metric.displayValue || metric.value + check.unit}. This is in the "needs improvement" range.`,
-          currentState: metric.displayValue || `${metric.value}${check.unit}`,
-          targetState: `Under ${check.key === 'cls' ? '0.1' : check.key === 'lcp' ? '2.5s' : check.key === 'tbt' ? '200ms' : check.key === 'fcp' ? '1.8s' : '600ms'}`,
-          metadata: { metric: check.key, value: metric.value, strategy: 'mobile' },
-        });
-      }
-    }
-
-    // Low performance score warning
-    if (mobile.performance !== null && mobile.performance < 50) {
-      actionItems.push({
-        severity: 'critical',
-        title: `Very low mobile performance score (${mobile.performance}/100)`,
-        detail: 'Mobile performance score below 50 indicates serious performance issues. Google uses mobile-first indexing, so this directly impacts rankings.',
-        currentState: `Mobile performance: ${mobile.performance}/100`,
-        targetState: 'Mobile performance > 90/100',
-      });
-    }
-  }
-
-  // Check desktop too for critical issues
-  if (desktop && desktop.performance !== null && desktop.performance < 50) {
-    actionItems.push({
-      severity: 'high',
-      title: `Low desktop performance score (${desktop.performance}/100)`,
-      detail: 'Desktop performance is also below 50, suggesting fundamental performance issues.',
-      currentState: `Desktop performance: ${desktop.performance}/100`,
-      targetState: 'Desktop performance > 90/100',
-    });
-  }
-
-  if (errors.length > 0) {
-    actionItems.push({
-      severity: 'low',
-      title: 'PageSpeed API errors during audit',
-      detail: errors.join('; '),
-      currentState: 'Partial data collected',
-      targetState: 'Full data from both strategies',
-    });
-  }
-
-  return { summary, score, findings, actionItems };
+  return { summary, score, findings };
 }
