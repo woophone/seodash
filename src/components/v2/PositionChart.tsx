@@ -79,7 +79,7 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           pointBackgroundColor: pointColors,
           pointBorderColor: pointColors,
-          pointRadius: filtered.length > 60 ? 0 : 3,
+          pointRadius: filtered.length > 180 ? 1 : filtered.length > 60 ? 1.5 : 3,
           pointHoverRadius: 5,
           fill: true,
           tension: 0.3,

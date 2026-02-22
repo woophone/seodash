@@ -83,7 +83,7 @@ export default function TrendChart({ data, title = 'Clicks & Impressions' }: Pro
             data: filtered.map(d => d.impressions),
             borderColor: '#8b5cf6',
             backgroundColor: 'rgba(139, 92, 246, 0.1)',
-            pointRadius: filtered.length > 60 ? 0 : 2,
+            pointRadius: filtered.length > 180 ? 1 : filtered.length > 60 ? 1.5 : 2,
             pointHoverRadius: 4,
             fill: false,
             tension: 0.3,
