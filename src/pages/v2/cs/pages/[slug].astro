@@ -2,6 +2,8 @@
 import Layout from '../../../../layouts/Layout.astro';
 import MetricsGrid from '../../../../components/v2/MetricsGrid.astro';
 import KeywordsTable from '../../../../components/v2/KeywordsTable.astro';
+import AuditCard from '../../../../components/v2/AuditCard.astro';
+import AuditDetail from '../../../../components/v2/AuditDetail.astro';
 import PositionChart from '../../../../components/v2/PositionChart.tsx';
 import TrendChart from '../../../../components/v2/TrendChart.tsx';
 import {
@@ -10,6 +12,8 @@ import {
   getPageTimeline,
   getPageKeywords,
   getPagesSummary,
+  getPageAuditCards,
+  getAuditDetail,
 } from '../../../../lib/db.js';
 
 export function getStaticPaths() {
@@ -66,6 +70,29 @@ const metrics = [
 // Position data for chart
 const positionData = timeline.map(d => ({ date: d.date, position: d.position }));
 const trendData = timeline.map(d => ({ date: d.date, clicks: d.clicks, impressions: d.impressions }));
+
+// Audit data
+const auditCards = getPageAuditCards('cs', pageUrl);
+const totalPending = auditCards.reduce((s, c) => s + c.pending_count, 0);
+
+// Group cards by tier
+const tiers = [
+  { tier: 1, label: 'Tier 1: Foundational' },
+  { tier: 2, label: 'Tier 2: On-Page Signals' },
+  { tier: 3, label: 'Tier 3: Technical Performance' },
+  { tier: 4, label: 'Tier 4: Content Enrichment' },
+  { tier: 5, label: 'Tier 5: Authority & Stability' },
+  { tier: 6, label: 'Tier 6: Advanced' },
+];
+
+// Pre-load audit details for cards that have been audited
+const auditDetails = {};
+for (const card of auditCards) {
+  if (card.audit_status === 'audited') {
+    const detail = getAuditDetail('cs', pageUrl, card.dimension_id);
+    auditDetails[card.dimension_id] = detail;
+  }
+}
 ---
 
 <Layout title={`${pageName} - ${client.name}`}>
@@ -97,6 +124,65 @@ const trendData = timeline.map(d => ({ date: d.date, clicks: d.clicks, impressio
   {trendData.length > 0 && (
     <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
       <TrendChart client:load data={trendData} title="Clicks & Impressions" />
+    </div>
+  )}
+
+  <!-- Audit Cards -->
+  {auditCards.length > 0 && (
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Page Audit</h3>
+        {totalPending > 0 && (
+          <span class="admin-only hidden inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+            {totalPending} pending item{totalPending !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {tiers.map(({ tier, label }) => {
+        const tierCards = auditCards.filter(c => c.tier === tier);
+        if (tierCards.length === 0) return null;
+        const isPlaceholderTier = tierCards.every(c => c.category === 'placeholder');
+        return (
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-3">
+              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider">{label}</h4>
+              {isPlaceholderTier && (
+                <span class="text-xs text-purple-500">&#x2B21;</span>
+              )}
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {tierCards.map(card => (
+                <div>
+                  <AuditCard
+                    dimensionId={card.dimension_id}
+                    name={card.name}
+                    tier={card.tier}
+                    category={card.category}
+                    auditStatus={card.audit_status}
+                    summary={card.summary}
+                    score={card.score}
+                    pendingCount={card.pending_count}
+                    completedCount={card.completed_count}
+                    totalItems={card.total_items}
+                    cardDescription={card.card_description}
+                  />
+                  {auditDetails[card.dimension_id] && (
+                    <AuditDetail
+                      dimensionId={card.dimension_id}
+                      name={card.name}
+                      findings={auditDetails[card.dimension_id].run?.findings || null}
+                      score={card.score}
+                      runDate={auditDetails[card.dimension_id].run?.run_date || null}
+                      items={auditDetails[card.dimension_id].items || []}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   )}
 

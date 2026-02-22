@@ -221,6 +221,108 @@ export function getClient(clientId) {
   return d.prepare('SELECT * FROM clients WHERE id = ?').get(clientId);
 }
 
+// ─── Audit System ──────────────────────────────────────────
+
+/**
+ * Get all audit dimensions, ordered by sort_order.
+ */
+export function getAuditDimensions() {
+  const d = getDb();
+  return d.prepare('SELECT * FROM audit_dimensions ORDER BY sort_order').all();
+}
+
+/**
+ * Get all audit runs for a specific page, joined with dimension info.
+ * Returns array with dimension metadata + audit status.
+ */
+export function getPageAuditCards(clientId, pageUrl) {
+  const d = getDb();
+  return d.prepare(`
+    SELECT
+      ad.id as dimension_id,
+      ad.name,
+      ad.tier,
+      ad.category,
+      ad.sort_order,
+      ad.card_description,
+      ar.status as audit_status,
+      ar.run_date,
+      ar.summary,
+      ar.score,
+      ar.findings,
+      (SELECT COUNT(*) FROM action_items ai
+       WHERE ai.client_id = ? AND ai.page_url = ? AND ai.dimension_id = ad.id AND ai.status = 'pending') as pending_count,
+      (SELECT COUNT(*) FROM action_items ai
+       WHERE ai.client_id = ? AND ai.page_url = ? AND ai.dimension_id = ad.id AND ai.status = 'completed') as completed_count,
+      (SELECT COUNT(*) FROM action_items ai
+       WHERE ai.client_id = ? AND ai.page_url = ? AND ai.dimension_id = ad.id) as total_items
+    FROM audit_dimensions ad
+    LEFT JOIN audit_runs ar ON ar.dimension_id = ad.id AND ar.client_id = ? AND ar.page_url = ?
+    ORDER BY ad.sort_order
+  `).all(clientId, pageUrl, clientId, pageUrl, clientId, pageUrl, clientId, pageUrl);
+}
+
+/**
+ * Get a single audit run with its action items.
+ */
+export function getAuditDetail(clientId, pageUrl, dimensionId) {
+  const d = getDb();
+  const run = d.prepare(`
+    SELECT ar.*, ad.name, ad.tier, ad.category, ad.card_description
+    FROM audit_runs ar
+    JOIN audit_dimensions ad ON ad.id = ar.dimension_id
+    WHERE ar.client_id = ? AND ar.page_url = ? AND ar.dimension_id = ?
+  `).get(clientId, pageUrl, dimensionId);
+
+  const items = d.prepare(`
+    SELECT * FROM action_items
+    WHERE client_id = ? AND page_url = ? AND dimension_id = ?
+    ORDER BY
+      CASE severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END,
+      created_at
+  `).all(clientId, pageUrl, dimensionId);
+
+  return { run, items };
+}
+
+/**
+ * Get all action items for a page, across all dimensions.
+ */
+export function getPageActionItems(clientId, pageUrl, statusFilter = null) {
+  const d = getDb();
+  if (statusFilter) {
+    return d.prepare(`
+      SELECT ai.*, ad.name as dimension_name
+      FROM action_items ai
+      JOIN audit_dimensions ad ON ad.id = ai.dimension_id
+      WHERE ai.client_id = ? AND ai.page_url = ? AND ai.status = ?
+      ORDER BY
+        CASE ai.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END
+    `).all(clientId, pageUrl, statusFilter);
+  }
+  return d.prepare(`
+    SELECT ai.*, ad.name as dimension_name
+    FROM action_items ai
+    JOIN audit_dimensions ad ON ad.id = ai.dimension_id
+    WHERE ai.client_id = ? AND ai.page_url = ?
+    ORDER BY
+      CASE ai.severity WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 WHEN 'low' THEN 4 ELSE 5 END
+  `).all(clientId, pageUrl);
+}
+
+/**
+ * Get pending work count for all pages of a client.
+ */
+export function getClientPendingWork(clientId) {
+  const d = getDb();
+  return d.prepare(`
+    SELECT page_url, COUNT(*) as pending_count
+    FROM action_items
+    WHERE client_id = ? AND status = 'pending'
+    GROUP BY page_url
+  `).all(clientId);
+}
+
 /**
  * Get page-level keyword summary for latest 28 days (for dashboard table).
  * Groups keywords per page, returns aggregated data.

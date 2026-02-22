@@ -1,0 +1,123 @@
+---
+import ActionItemList from './ActionItemList.astro';
+
+interface ActionItem {
+  id: number;
+  severity: string;
+  title: string;
+  detail: string | null;
+  current_state: string | null;
+  target_state: string | null;
+  status: string;
+  metadata: string | null;
+}
+
+interface Props {
+  dimensionId: string;
+  name: string;
+  findings: string | null;
+  score: number | null;
+  runDate: string | null;
+  items: ActionItem[];
+}
+
+const { dimensionId, name, findings, score, runDate, items } = Astro.props;
+
+// Parse findings JSON
+let parsedFindings: Record<string, any> | null = null;
+if (findings) {
+  try {
+    parsedFindings = JSON.parse(findings);
+  } catch {
+    parsedFindings = null;
+  }
+}
+
+// Separate items by status
+const pendingItems = items.filter(i => i.status === 'pending');
+const completedItems = items.filter(i => i.status === 'completed');
+
+// Score color
+function scoreColor(s: number): string {
+  if (s >= 70) return 'text-green-600';
+  if (s >= 40) return 'text-amber-600';
+  return 'text-red-600';
+}
+
+// Format findings for display: extract string/number values, skip nested objects
+function extractFindings(obj: Record<string, any>): Array<{ key: string; value: string }> {
+  const result: Array<{ key: string; value: string }> = [];
+  for (const [key, val] of Object.entries(obj)) {
+    if (val === null || val === undefined) continue;
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean') {
+      // Format key: snake_case -> Title Case
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      result.push({ key: label, value: String(val) });
+    } else if (Array.isArray(val) && val.length > 0 && val.every(v => typeof v === 'string')) {
+      const label = key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      result.push({ key: label, value: val.join(', ') });
+    }
+  }
+  return result;
+}
+---
+
+<div id={`audit-detail-${dimensionId}`} class="hidden">
+  <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-4 border border-gray-200">
+    {/* Header */}
+    <div class="flex items-start justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-base font-semibold text-gray-900">{name}</h3>
+        {runDate && (
+          <p class="text-xs text-gray-400 mt-0.5">Last audited: {runDate}</p>
+        )}
+      </div>
+      {score !== null && (
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <span class="text-xs text-gray-500">Score:</span>
+          <span class={`text-lg font-bold ${scoreColor(score)}`}>{score}</span>
+          <span class="text-xs text-gray-400">/100</span>
+        </div>
+      )}
+    </div>
+
+    {/* Key Findings */}
+    {parsedFindings && (
+      <div class="mb-5">
+        <h4 class="text-sm font-medium text-gray-700 mb-2">Key Findings</h4>
+        <div class="bg-gray-50 rounded-lg p-3 space-y-1.5">
+          {extractFindings(parsedFindings).map(({ key, value }) => (
+            <div class="flex items-start gap-2 text-xs">
+              <span class="text-gray-400 mt-0.5 flex-shrink-0">&bull;</span>
+              <span>
+                <span class="font-medium text-gray-600">{key}:</span>
+                <span class="text-gray-500 ml-1">{value}</span>
+              </span>
+            </div>
+          ))}
+          {extractFindings(parsedFindings).length === 0 && (
+            <p class="text-xs text-gray-400 italic">Findings data recorded (structured format).</p>
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* Action Items */}
+    <div>
+      <h4 class="text-sm font-medium text-gray-700 mb-2">
+        Action Items
+        {pendingItems.length > 0 && (
+          <span class="text-xs font-normal text-gray-400 ml-1">
+            ({pendingItems.length} pending{completedItems.length > 0 ? `, ${completedItems.length} completed` : ''})
+          </span>
+        )}
+        {pendingItems.length === 0 && completedItems.length > 0 && (
+          <span class="text-xs font-normal text-green-600 ml-1">(all complete)</span>
+        )}
+      </h4>
+
+      {/* Show pending items first, then completed */}
+      <ActionItemList items={[...pendingItems, ...completedItems]} />
+    </div>
+  </div>
+</div>
