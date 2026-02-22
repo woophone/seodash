@@ -13,8 +13,8 @@ import {
 } from '../../../../lib/db.js';
 
 export function getStaticPaths() {
-  // Use getPagesSummary to get pages with clicks in last 28 days
-  const pages = getPagesSummary('cs', 28).filter(p => p.clicks > 0);
+  // Use getClientPages to get ALL pages ever tracked (not filtered by recent activity)
+  const pages = getClientPages('cs');
 
   return pages.map(p => {
     const path = new URL(p.page_url).pathname.replace(/^\/|\/$/g, '');
@@ -30,7 +30,7 @@ const { slug } = Astro.params;
 const { pageUrl } = Astro.props;
 
 const client = getClient('cs');
-const timeline = getPageTimeline('cs', pageUrl, 365);
+const timeline = getPageTimeline('cs', pageUrl, 0); // All historical data — chart handles time range filtering
 const keywords = getPageKeywords('cs', pageUrl);
 
 // Page-level aggregate (last 28 days)
@@ -89,14 +89,14 @@ const trendData = timeline.map(d => ({ date: d.date, clicks: d.clicks, impressio
   <!-- Position Timeline -->
   {positionData.length > 0 && (
     <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-      <PositionChart client:load data={positionData} title={`Position History (${positionData.length} days)`} />
+      <PositionChart client:load data={positionData} title="Position History" />
     </div>
   )}
 
   <!-- Traffic Timeline -->
   {trendData.length > 0 && (
     <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-      <TrendChart client:load data={trendData} title={`Clicks & Impressions (${trendData.length} days)`} />
+      <TrendChart client:load data={trendData} title="Clicks & Impressions" />
     </div>
   )}
 

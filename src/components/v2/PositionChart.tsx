@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-date-fns';
 
@@ -14,12 +14,46 @@ interface Props {
   title?: string;
 }
 
+const RANGES = [
+  { label: '1W', days: 7 },
+  { label: '1M', days: 30 },
+  { label: '3M', days: 90 },
+  { label: '6M', days: 180 },
+  { label: '1Y', days: 365 },
+  { label: 'All', days: 0 },
+];
+
+function filterByRange(data: DataPoint[], days: number): DataPoint[] {
+  if (days === 0) return data;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  return data.filter(d => d.date >= cutoffStr);
+}
+
+function rangeLabel(filtered: DataPoint[]): string {
+  if (filtered.length === 0) return '';
+  const first = filtered[0].date;
+  const last = filtered[filtered.length - 1].date;
+  const days = Math.round((new Date(last).getTime() - new Date(first).getTime()) / 86400000);
+  if (days <= 1) return '1 day';
+  if (days < 30) return `${days} days`;
+  const months = Math.round(days / 30);
+  if (months <= 12) return `${months} month${months > 1 ? 's' : ''}`;
+  return `${Math.round(days / 365 * 10) / 10} years`;
+}
+
 export default function PositionChart({ data, title = 'Position Over Time' }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  // Default to 3 months
+  const [activeDays, setActiveDays] = useState(90);
+
+  const filtered = useMemo(() => filterByRange(data, activeDays), [data, activeDays]);
+  const dynamicTitle = `${title} (${rangeLabel(filtered)})`;
 
   useEffect(() => {
-    if (!canvasRef.current || data.length === 0) return;
+    if (!canvasRef.current || filtered.length === 0) return;
 
     if (chartRef.current) {
       chartRef.current.destroy();
@@ -28,7 +62,7 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
     const ctx = canvasRef.current.getContext('2d')!;
 
     // Color based on position value
-    const pointColors = data.map(d => {
+    const pointColors = filtered.map(d => {
       if (d.position <= 5) return '#22c55e';   // green
       if (d.position <= 10) return '#f59e0b';  // amber
       return '#ef4444';                         // red
@@ -37,15 +71,15 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
     chartRef.current = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: data.map(d => d.date),
+        labels: filtered.map(d => d.date),
         datasets: [{
           label: 'Position',
-          data: data.map(d => d.position),
+          data: filtered.map(d => d.position),
           borderColor: '#3b82f6',
           backgroundColor: 'rgba(59, 130, 246, 0.1)',
           pointBackgroundColor: pointColors,
           pointBorderColor: pointColors,
-          pointRadius: data.length > 60 ? 0 : 3,
+          pointRadius: filtered.length > 60 ? 0 : 3,
           pointHoverRadius: 5,
           fill: true,
           tension: 0.3,
@@ -58,7 +92,7 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
         plugins: {
           title: {
             display: true,
-            text: title,
+            text: dynamicTitle,
             font: { size: 14, weight: 'bold' },
             color: '#1f2937',
           },
@@ -73,7 +107,7 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
           x: {
             type: 'time',
             time: {
-              unit: data.length > 180 ? 'month' : data.length > 30 ? 'week' : 'day',
+              unit: filtered.length > 180 ? 'month' : filtered.length > 30 ? 'week' : 'day',
               tooltipFormat: 'MMM d, yyyy',
             },
             grid: { display: false },
@@ -97,15 +131,32 @@ export default function PositionChart({ data, title = 'Position Over Time' }: Pr
     return () => {
       chartRef.current?.destroy();
     };
-  }, [data, title]);
+  }, [filtered, dynamicTitle]);
 
   if (data.length === 0) {
     return <div className="text-gray-400 text-sm p-4">No position data available</div>;
   }
 
   return (
-    <div style={{ height: '300px', position: 'relative' }}>
-      <canvas ref={canvasRef} />
+    <div>
+      <div className="flex flex-wrap gap-1 mb-3">
+        {RANGES.map(r => (
+          <button
+            key={r.label}
+            onClick={() => setActiveDays(r.days)}
+            className={`px-2.5 py-1 text-xs font-medium rounded transition-colors ${
+              activeDays === r.days
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ height: '300px', position: 'relative' }}>
+        <canvas ref={canvasRef} />
+      </div>
     </div>
   );
 }

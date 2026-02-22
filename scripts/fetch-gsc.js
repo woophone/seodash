@@ -28,8 +28,16 @@ if (!client) {
   process.exit(1);
 }
 
+// Auto-detect: if DB has no data for this client, auto-backfill
+const existingRows = db.prepare('SELECT COUNT(*) as cnt FROM page_snapshots WHERE client_id = ?').get(clientId);
+const shouldBackfill = isBackfill || existingRows.cnt === 0;
+
+if (existingRows.cnt === 0 && !isBackfill) {
+  console.log(`No existing data for ${clientId} — auto-triggering backfill.`);
+}
+
 console.log(`Fetching GSC data for ${client.name} (${client.domain})`);
-console.log(`Mode: ${isBackfill ? 'BACKFILL (~16 months)' : 'DAILY (last 3 days)'}`);
+console.log(`Mode: ${shouldBackfill ? 'BACKFILL (~16 months)' : 'DAILY (last 3 days)'}`);
 
 // --- OAuth token ---
 async function refreshToken() {
@@ -212,7 +220,7 @@ async function main() {
   const now = new Date();
   let startDate, endDate;
 
-  if (isBackfill) {
+  if (shouldBackfill) {
     // GSC keeps ~16 months of data
     startDate = formatDate(addDays(now, -480));
     endDate = formatDate(addDays(now, -2)); // GSC data lags ~2 days

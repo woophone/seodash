@@ -2,7 +2,6 @@
 import Layout from '../../../layouts/Layout.astro';
 import MetricsGrid from '../../../components/v2/MetricsGrid.astro';
 import SectionHeader from '../../../components/v2/SectionHeader.astro';
-import PageRow from '../../../components/v2/PageRow.astro';
 import TrendChart from '../../../components/v2/TrendChart.tsx';
 import {
   getClient,
@@ -14,14 +13,9 @@ import {
 
 const client = getClient('cs');
 const overview = getClientOverview('cs', 28);
-const trend = getClientDailyTrend('cs', 90);
+const trend = getClientDailyTrend('cs', 0);
 const pages = getPagesSummary('cs', 28);
 const movers = getMovers('cs', 30);
-
-// Group pages by Google page position
-const page1Pages = pages.filter(p => p.googlePage === 1);
-const page2Pages = pages.filter(p => p.googlePage === 2);
-const page3Pages = pages.filter(p => p.googlePage === 3);
 
 // Helper to generate slug from URL
 function urlToSlug(pageUrl: string) {
@@ -29,9 +23,40 @@ function urlToSlug(pageUrl: string) {
   return path.replace(/\//g, '-') || 'homepage';
 }
 
-// Count page 1 positions 1-5 vs 6-10
-const top5Count = page1Pages.filter(p => p.position <= 5).length;
-const pos6to10Count = page1Pages.filter(p => p.position > 5).length;
+// Helper to derive short name from URL
+function urlToName(pageUrl: string) {
+  const urlPath = new URL(pageUrl).pathname;
+  return urlPath === '/' ? 'Homepage' :
+    urlPath.replace(/^\/|\/$/g, '').split('/').pop()?.replace(/-/g, ' ')
+      .replace(/\b\w/g, (c: string) => c.toUpperCase()) || urlPath;
+}
+
+// Position badge class
+function posClass(pos: number) {
+  if (pos <= 5) return 'bg-green-100 text-green-800';
+  if (pos <= 10) return 'bg-amber-100 text-amber-800';
+  if (pos <= 20) return 'bg-orange-100 text-orange-800';
+  return 'bg-red-100 text-red-700';
+}
+
+// Prepare page data for the sortable table
+const tableData = pages.map(p => ({
+  name: urlToName(p.page_url),
+  path: new URL(p.page_url).pathname,
+  slug: urlToSlug(p.page_url),
+  clicks: p.clicks,
+  impressions: p.impressions,
+  ctr: p.ctr,
+  position: p.position,
+  googlePage: p.googlePage,
+  kwCount: p.keywords?.length || 0,
+  posClass: posClass(p.position),
+}));
+
+// Count stats
+const page1Count = tableData.filter(p => p.googlePage === 1).length;
+const page2Count = tableData.filter(p => p.googlePage === 2).length;
+const page3Count = tableData.filter(p => p.googlePage >= 3).length;
 
 const metrics = [
   { label: `Clicks (${overview.startDate?.slice(5)} – ${overview.endDate?.slice(5)})`, value: overview.totalClicks.toLocaleString(), color: 'text-blue-700' },
@@ -67,9 +92,9 @@ const metrics = [
     <MetricsGrid metrics={metrics} />
   </div>
 
-  <!-- Traffic Trend Chart (90 days) -->
+  <!-- Traffic Trend Chart -->
   <div class="bg-white rounded-lg shadow-sm p-4 sm:p-6 mb-6">
-    <TrendChart client:load data={trend} title="Clicks & Impressions (90 days)" />
+    <TrendChart client:load data={trend} title="Clicks & Impressions" />
   </div>
 
   <!-- Position Movers -->
@@ -101,68 +126,113 @@ const metrics = [
     </div>
   )}
 
-  <!-- Rankings: Google Page 1 (positions 1-10) -->
-  {page1Pages.length > 0 && (
-    <div class="mb-6">
-      <SectionHeader
-        title="Google Page 1"
-        color="text-green-700"
-        count={page1Pages.length}
-        subtitle={`${top5Count} in top 5, ${pos6to10Count} positions 6-10`}
-      />
-      {page1Pages.map((page, i) => (
-        <PageRow
-          page={page}
-          index={i}
-          showReport={true}
-          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
-        />
-      ))}
-    </div>
-  )}
+  <!-- Rankings Summary -->
+  <div class="mb-3 flex items-center gap-3 text-sm">
+    <span class="inline-block px-2 py-0.5 rounded bg-green-100 text-green-800 text-xs font-medium">Page 1: {page1Count}</span>
+    <span class="inline-block px-2 py-0.5 rounded bg-orange-100 text-orange-800 text-xs font-medium">Page 2: {page2Count}</span>
+    <span class="inline-block px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-medium">Page 3+: {page3Count}</span>
+  </div>
 
-  <!-- Rankings: Google Page 2 (positions 11-20) -->
-  {page2Pages.length > 0 && (
-    <div class="mb-6">
-      <SectionHeader
-        title="Google Page 2"
-        color="text-orange-600"
-        count={page2Pages.length}
-        subtitle="Opportunity zone — close to page 1"
-      />
-      {page2Pages.map((page, i) => (
-        <PageRow
-          page={page}
-          index={100 + i}
-          showReport={true}
-          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
-        />
-      ))}
+  <!-- Sortable Rankings Table -->
+  <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" id="rankings-table">
+        <thead>
+          <tr class="text-left text-xs text-gray-500 border-b bg-gray-50">
+            <th class="py-2.5 pl-3 pr-2 font-medium">Page</th>
+            <th class="py-2.5 px-2 text-right font-medium cursor-pointer hover:text-gray-900 select-none" data-sort="impressions">
+              Impressions <span class="sort-arrow">↓</span>
+            </th>
+            <th class="py-2.5 px-2 text-right font-medium cursor-pointer hover:text-gray-900 select-none" data-sort="clicks">
+              Clicks <span class="sort-arrow"></span>
+            </th>
+            <th class="py-2.5 px-2 text-right font-medium cursor-pointer hover:text-gray-900 select-none hidden sm:table-cell" data-sort="ctr">
+              CTR <span class="sort-arrow"></span>
+            </th>
+            <th class="py-2.5 px-2 text-right font-medium cursor-pointer hover:text-gray-900 select-none" data-sort="position">
+              Position <span class="sort-arrow"></span>
+            </th>
+            <th class="py-2.5 px-2 text-right font-medium hidden sm:table-cell">KWs</th>
+            <th class="py-2.5 pr-3 pl-2 text-right font-medium">Report</th>
+          </tr>
+        </thead>
+        <tbody id="rankings-body">
+          {tableData.map(p => (
+            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                data-impressions={p.impressions}
+                data-clicks={p.clicks}
+                data-ctr={p.ctr}
+                data-position={p.position}>
+              <td class="py-2 pl-3 pr-2">
+                <p class="font-medium text-gray-900 truncate max-w-[250px]">{p.name}</p>
+                <p class="text-xs text-gray-400 truncate max-w-[250px] hidden sm:block">{p.path}</p>
+              </td>
+              <td class="py-2 px-2 text-right text-gray-500">{p.impressions.toLocaleString()}</td>
+              <td class="py-2 px-2 text-right font-medium">{p.clicks}</td>
+              <td class="py-2 px-2 text-right text-gray-500 hidden sm:table-cell">{p.ctr}%</td>
+              <td class="py-2 px-2 text-right">
+                <span class={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${p.posClass}`}>
+                  {p.position.toFixed(1)}
+                </span>
+              </td>
+              <td class="py-2 px-2 text-right text-gray-400 hidden sm:table-cell">{p.kwCount}</td>
+              <td class="py-2 pr-3 pl-2 text-right">
+                <a href={`/v2/cs/pages/${p.slug}/`} class="text-blue-600 hover:text-blue-800 text-xs font-medium">View</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  )}
-
-  <!-- Rankings: Google Page 3+ (positions 21-30) -->
-  {page3Pages.length > 0 && (
-    <div class="mb-6">
-      <SectionHeader
-        title="Google Page 3+"
-        color="text-red-600"
-        count={page3Pages.length}
-        subtitle="Low visibility"
-      />
-      {page3Pages.map((page, i) => (
-        <PageRow
-          page={page}
-          index={200 + i}
-          showReport={true}
-          reportHref={`/v2/cs/pages/${urlToSlug(page.page_url)}/`}
-        />
-      ))}
-    </div>
-  )}
+  </div>
 
   <!-- Footer -->
   <div class="text-center text-xs text-gray-400 mt-8 mb-4">
     <p>Data: Google Search Console · Last updated: {overview.endDate}</p>
   </div>
 </Layout>
+
+<script>
+  // Column sorting
+  const table = document.getElementById('rankings-table');
+  const tbody = document.getElementById('rankings-body');
+  if (table && tbody) {
+    let currentSort = 'impressions';
+    let currentDir = 'desc';
+
+    const headers = table.querySelectorAll('th[data-sort]');
+    headers.forEach(th => {
+      th.addEventListener('click', () => {
+        const field = th.getAttribute('data-sort')!;
+        if (currentSort === field) {
+          currentDir = currentDir === 'desc' ? 'asc' : 'desc';
+        } else {
+          currentSort = field;
+          currentDir = field === 'position' ? 'asc' : 'desc'; // Position: lower is better
+        }
+
+        // Update arrows
+        headers.forEach(h => {
+          const arrow = h.querySelector('.sort-arrow');
+          if (arrow) {
+            if (h.getAttribute('data-sort') === currentSort) {
+              arrow.textContent = currentDir === 'desc' ? '↓' : '↑';
+            } else {
+              arrow.textContent = '';
+            }
+          }
+        });
+
+        // Sort rows
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        rows.sort((a, b) => {
+          const aVal = parseFloat(a.getAttribute('data-' + currentSort) || '0');
+          const bVal = parseFloat(b.getAttribute('data-' + currentSort) || '0');
+          return currentDir === 'desc' ? bVal - aVal : aVal - bVal;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+      });
+    });
+  }
+</script>

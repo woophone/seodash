@@ -17,8 +17,16 @@ function getDb() {
  * Get daily page metrics over time for a specific page.
  * Returns array of { date, clicks, impressions, ctr, position }
  */
-export function getPageTimeline(clientId, pageUrl, days = 90) {
+export function getPageTimeline(clientId, pageUrl, days = 0) {
   const d = getDb();
+  if (days <= 0) {
+    return d.prepare(`
+      SELECT snapshot_date as date, clicks, impressions, ctr, position
+      FROM page_snapshots
+      WHERE client_id = ? AND page_url = ?
+      ORDER BY snapshot_date
+    `).all(clientId, pageUrl);
+  }
   return d.prepare(`
     SELECT snapshot_date as date, clicks, impressions, ctr, position
     FROM page_snapshots
@@ -125,8 +133,18 @@ export function getClientOverview(clientId, days = 28) {
  * Get aggregate daily traffic (all pages combined) for trend chart.
  * Returns array of { date, clicks, impressions }
  */
-export function getClientDailyTrend(clientId, days = 90) {
+export function getClientDailyTrend(clientId, days = 0) {
   const d = getDb();
+  if (days <= 0) {
+    // Return ALL historical data
+    return d.prepare(`
+      SELECT snapshot_date as date, SUM(clicks) as clicks, SUM(impressions) as impressions
+      FROM page_snapshots
+      WHERE client_id = ?
+      GROUP BY snapshot_date
+      ORDER BY snapshot_date
+    `).all(clientId);
+  }
   return d.prepare(`
     SELECT snapshot_date as date, SUM(clicks) as clicks, SUM(impressions) as impressions
     FROM page_snapshots
@@ -221,7 +239,7 @@ export function getPagesSummary(clientId, days = 28) {
     FROM page_snapshots
     WHERE client_id = ? AND snapshot_date >= date('now', '-' || ? || ' days')
     GROUP BY page_url
-    ORDER BY clicks DESC
+    ORDER BY impressions DESC
   `).all(clientId, days);
 
   // For each page, get top keywords from the period
